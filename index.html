@@ -618,7 +618,7 @@ function Directory(){
                 <div style={{position:"relative"}}><Av name={u.name} url={u.avatar} size={56}/>{u.onlineAt&&<div style={{position:"absolute",bottom:2,right:2,width:12,height:12,borderRadius:"50%",background:"#16a34a",border:"2px solid #fff"}}/>}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:800,fontSize:14}} className="truncate">{u.name}</div>
-                  <div style={{fontSize:12,color:"var(--mu)"}} className="truncate">{u.dept||"—"}</div>
+                  <div style={{fontSize:12,color:"var(--mu)"}} className="truncate">{u.jobTitle||u.dept||"—"}</div>
                   <div style={{fontSize:11,color:"var(--m2)",marginTop:2}} className="truncate">{u.branch}</div>
                   {u.statusMsg&&<div style={{fontSize:11,color:"var(--mu)",marginTop:4,fontStyle:"italic"}}>"{u.statusMsg}"</div>}
                 </div>
@@ -629,7 +629,7 @@ function Directory(){
                 {(u.tempo_empresa||u.admission_fmt)&&<span style={{color:"var(--mu)"}}>📅 {u.tempo_empresa||"—"} de empresa</span>}
                 {(u.birth_date_fmt||u.birthDate)&&<span style={{color:"var(--mu)"}}>🎂 {(u.birth_date_fmt||"").slice(0,5)||fmtD(u.birthDate,{day:"2-digit",month:"2-digit"})}</span>}
               </div>
-              {sk.length>0&&<div style={{marginTop:10,display:"flex",gap:4,flexWrap:"wrap"}}>{sk.slice(0,4).map(s=><span key={s} className="chip">{s}</span>)}</div>}
+              {Array.isArray(u.skills)&&u.skills.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:8}}>{u.skills.slice(0,4).map(sk=><span key={sk} className="chip">{sk}</span>)}</div>}
             </article>
           ))}
         </div>
@@ -640,16 +640,17 @@ function Directory(){
 }
 
 function ProfModal({user:u,onClose}){
-  const {data:allUsers}=useRes(()=>api("/api/users").catch(()=>[]));
-  const list=Array.isArray(allUsers)?allUsers:[];
-  const manager=u.manager||(u.managerId?list.find(x=>x.id===u.managerId):null);
-  const reports=(u.reports&&u.reports.length>0)?u.reports:list.filter(x=>x.managerId===u.id);
+  const [allUsers,setAllUsers]=useState([]);
+  useEffect(()=>{api("/api/users").then(d=>{if(Array.isArray(d))setAllUsers(d);}).catch(()=>{});},[]);
+  const manager=u.manager||(u.managerId?allUsers.find(x=>x.id===u.managerId):null);
+  const reports=(u.reports&&u.reports.length>0)?u.reports:allUsers.filter(x=>x.managerId===u.id);
   const sk=u.skills||[];
   return <Modal open onClose={onClose} title="Perfil" wide>
     <div style={{display:"flex",gap:20,alignItems:"flex-start",marginBottom:20}}>
       <Av name={u.name} url={u.avatar} size={80}/>
       <div>
         <div style={{fontWeight:900,fontSize:22}}>{u.name}</div>
+        {u.jobTitle&&<div style={{fontSize:13,color:"var(--mu)",marginTop:2}}>🏷 {u.jobTitle}</div>}
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
           <span className="chip chip-green">{ROLES[u.role]||u.role}</span>
           {u.onlineAt&&<span className="chip chip-green">● Online</span>}
@@ -803,7 +804,12 @@ function Surveys(){
                   {s.description&&<p style={{fontSize:13.5,color:"var(--mu)",marginTop:6}}>{s.description}</p>}
                   <div style={{fontSize:12,color:"var(--m2)",marginTop:8,display:"flex",gap:14}}><span>📝 {s.questionsCount??0} perguntas</span><span>👥 {s.responsesCount??0} respostas</span></div>
                 </div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {!closed&&!s.answered&&s.status==="active"&&can("surveys_respond")&&<button className="btn btn-primary btn-sm" onClick={()=>setResp(s)}>Responder →</button>}
+{canC&&s.status==="draft"&&<button className="btn btn-ghost btn-sm" onClick={async()=>{try{await api(`/api/surveys/${s.id}`,{method:"PATCH",body:{status:"active"}});toast("Pesquisa publicada!");reload();}catch(e){toast(e.message,"error");}}}>▶ Publicar</button>}
+{canC&&s.status==="active"&&<button className="btn btn-ghost btn-sm" onClick={async()=>{try{await api(`/api/surveys/${s.id}`,{method:"PATCH",body:{status:"closed"}});toast("Encerrada");reload();}catch(e){toast(e.message,"error");}}}>⏹ Encerrar</button>}
+{canC&&<button className="btn btn-danger btn-sm" onClick={async()=>{if(!confirm("Excluir pesquisa?"))return;try{await api(`/api/surveys/${s.id}`,{method:"DELETE"});toast("Removida");reload();}catch(e){toast(e.message,"error");}}}>🗑</button>}
+                </div>
               </div>
             </article>
           );})}
@@ -1004,6 +1010,12 @@ function Users(){
             <select className="input" value={form.managerId} onChange={e=>setForm({...form,managerId:e.target.value})}>
               <option value="">Sem gestor</option>
               {list.filter(u=>u.id!==editing?.id).map(u=><option key={u.id} value={u.id}>{u.name} — {ROLES[u.role]||u.role}</option>)}
+            </select>
+          </Field>
+          <Field label="Cargo / Título formal">
+            <select className="input" value={form.jobTitle||""} onChange={e=>setForm({...form,jobTitle:e.target.value})}>
+              <option value="">Selecione ou deixe em branco</option>
+              {jobTitles.map(t=><option key={t} value={t}>{t}</option>)}
             </select>
           </Field>
           <div style={{gridColumn:"1 / -1"}}><Field label="Competências (separadas por vírgula)"><input className="input" value={form.skills} onChange={e=>setForm({...form,skills:e.target.value})} placeholder="Excel, SAP, Vendas…"/></Field></div>
