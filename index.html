@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TITANO Intranet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{--p:#1f4e2a;--pd:#1a3d22;--pm:#2d6a3c;--ac:#c4842a;--ink:#1a2e1c;--inks:#2a4030;--bone:#f2f5f2;--b2:#e8ede9;--b3:#dde8de;--b4:#f0f4f1;--b5:#f5f7f5;--mu:#6b7a6d;--m2:#9aaa9c;--ln:#e8ede9;--ls:#f0f4f1;--danger:#dc2626;--warn:#d97706;--info:#2563eb;--ok:#16a34a;--sbg:linear-gradient(180deg,#182e1a,#1f4e2a);--sm:0 2px 8px #0000000a;--md:0 6px 22px #00000014;--lg:0 24px 60px #0003}
+body.dark{--bone:#0f1a10;--b2:#1a2a1c;--b3:#1f3522;--b4:#1a2a1c;--b5:#162018;--ink:#e8f0e9;--inks:#cdd8cf;--mu:#9aaa9c;--m2:#7a8a7c;--ln:#1f3522;--ls:#1a2a1c}
+*{box-sizing:border-box;margin:0;padding:0}html,body{font-family:'Inter',sans-serif;background:var(--bone);color:var(--ink);-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:10px}
+.num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pulse{50%{opacity:.5}}.fade-up{animation:fadeUp .25s ease both}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1rem;border-radius:10px;font-weight:700;font-size:13.5px;border:none;cursor:pointer;transition:transform .08s,background .12s}
+.btn:active{transform:translateY(1px)}.btn-primary{background:var(--p);color:#fff}.btn-primary:hover{background:var(--pm)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}.btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--b2)}
+body.dark .btn-ghost{background:var(--b2)}.btn-ghost:hover{background:var(--b4)}
+.btn-danger{background:#fff;color:var(--danger);border:1.5px solid #fee2e2}.btn-danger:hover{background:#fef2f2}
+.btn-sm{padding:.4rem .75rem;font-size:12.5px;border-radius:9px}
+.input{width:100%;padding:.65rem .85rem;border-radius:10px;border:1.5px solid var(--b3);background:#fff;font-size:14px;outline:none;color:var(--ink);transition:border-color .12s,box-shadow .12s}
+body.dark .input{background:var(--b2)}.input:focus{border-color:var(--p);box-shadow:0 0 0 3px color-mix(in srgb,var(--p) 18%,transparent)}
+textarea.input{min-height:90px;resize:vertical}
+.chip{display:inline-flex;align-items:center;gap:.35rem;padding:.18rem .6rem;border-radius:999px;font-size:11px;font-weight:700;background:var(--b4);color:var(--mu);border:1px solid var(--b2)}
+.chip-amber{background:#fef3c7;border-color:#fcd34d;color:#7c2d12}.chip-green{background:#dcfce7;border-color:#86efac;color:#14532d}
+.chip-blue{background:#dbeafe;border-color:#93c5fd;color:#1e3a8a}.chip-red{background:#fee2e2;border-color:#fca5a5;color:#7f1d1d}
+.card{background:#fff;border:1.5px solid var(--ln);border-radius:16px}
+body.dark .card{background:var(--b2)}.label{font-size:11px;font-weight:800;color:var(--mu);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:none;background:transparent;color:rgba(255,255,255,.55);font-weight:500;font-size:13.5px;cursor:pointer;text-align:left;transition:background .12s}
+.nav-btn:hover{background:rgba(255,255,255,.06);color:#fff}.nav-btn.active{background:rgba(255,255,255,.13);color:#fff;font-weight:700}
+.nav-btn.light{color:var(--mu)}.nav-btn.light:hover{background:var(--b4);color:var(--ink)}.nav-btn.light.active{background:color-mix(in srgb,var(--p) 12%,transparent);color:var(--p);font-weight:700}
+.toast{animation:slideIn .3s ease;padding:13px 20px;border-radius:14px;color:#fff;font-weight:700;font-size:13.5px;box-shadow:var(--md)}
+table.t{width:100%;border-collapse:separate;border-spacing:0}
+table.t th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);font-weight:800;padding:.7rem .9rem;border-bottom:1.5px solid var(--ln);background:var(--b5)}
+table.t td{padding:.75rem .9rem;border-bottom:1px solid var(--ls);font-size:13.5px}table.t tr:hover td{background:var(--b5)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeUp .15s ease both}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:520px;box-shadow:var(--lg);overflow:hidden}body.dark .modal{background:var(--b2)}.modal-w{max-width:760px}
+.mh{padding:18px 22px;border-bottom:1.5px solid var(--ln);display:flex;align-items:center;justify-content:space-between}
+.mb{padding:20px 22px;max-height:65vh;overflow-y:auto}
+.mf{padding:14px 22px;border-top:1.5px solid var(--ln);background:var(--b5);display:flex;justify-content:flex-end;gap:10px}
+.empty{padding:50px 30px;text-align:center}.empty .emo{font-size:48px;margin-bottom:14px}
+.avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--p);color:#fff;font-weight:800;flex-shrink:0;user-select:none;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.folder-card{background:#fff;border:1.5px solid var(--ln);border-radius:16px;padding:18px;cursor:pointer;transition:all .15s;box-shadow:var(--sm)}
+body.dark .folder-card{background:var(--b2)}.folder-card:hover{transform:translateY(-2px);box-shadow:var(--md)}
+.toggle{position:relative;display:inline-block;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}.toggle-slider{position:absolute;inset:0;background:var(--b3);border-radius:999px;transition:.2s}
+.toggle-slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--p)}.toggle input:checked+.toggle-slider:before{transform:translateX(20px)}
+</style>
+</head>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1f4e2a;color:rgba(255,255,255,.85);flex-direction:column;gap:14px;font-family:Inter,sans-serif"><div style="font-size:52px">🌿</div><div style="font-weight:800;font-size:20px">TITANO Intranet</div><div style="font-size:13px;opacity:.6">Iniciando…</div></div></div>
+<script>
+window.API_BASE=(window.TITANO_API_BASE||localStorage.getItem("titano_api_base")||"https://titano-intranet-backend-production.up.railway.app").replace(/\/$/,"");
+window.Token={get:()=>localStorage.getItem("titano_token"),set:t=>localStorage.setItem("titano_token",t),refresh:()=>localStorage.getItem("titano_refresh"),setRefresh:t=>localStorage.setItem("titano_refresh",t),clear:()=>{localStorage.removeItem("titano_token");localStorage.removeItem("titano_refresh")}};
+window.ROLES={admin:"Administrador",gerente:"Gerente",colaborador:"Colaborador",visitante:"Visitante"};
+async function _rfsh(){const rt=Token.refresh();if(!rt)return false;try{const d=await fetch(API_BASE+"/api/auth/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({refreshToken:rt})}).then(r=>r.json());if(d.accessToken){Token.set(d.accessToken);Token.setRefresh(d.refreshToken);return true;}return false;}catch{return false;}}
+window.api=async function(path,opts={}){const h={"Content-Type":"application/json",...(opts.headers||{})};const t=Token.get();if(t)h.Authorization="Bearer "+t;let r;try{r=await fetch(API_BASE+path,{...opts,headers:h,body:opts.body!==undefined?JSON.stringify(opts.body):undefined});}catch{throw new Error("Sem conexão com o servidor");}if(r.status===401){if(!t){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Não autenticado");}const ok=await _rfsh();if(ok)return api(path,opts);Token.clear();localStorage.removeItem("titano_user");window.location.reload();return;}if(r.status===204)return null;const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"HTTP "+r.status);return d;};
+(function(){if(localStorage.getItem("titano_dark")==="1")document.body.classList.add("dark");const s=localStorage.getItem("titano_fs");if(s)document.documentElement.style.fontSize=s+"px";})();
+</script>
+
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useMemo,useCallback,useRef,createContext,useContext}=React;
+
+/* ── helpers JSON seguro ── */
+const jp = (s,fb=[]) => { try{ return JSON.parse(s); }catch{ return fb; } };
+
+/* ── AppContext ── */
+const Ctx = createContext(null);
+const useApp = () => useContext(Ctx);
+
+function AppProvider({children}){
+  const [cfg,setCfg]=useState(null);
+  const [user,setUser]=useState(()=>{try{return JSON.parse(localStorage.getItem("titano_user"));}catch{return null;}});
+  const [boot,setBoot]=useState(true);
+  const [toasts,setToasts]=useState([]);
+
+  const toast=useCallback((msg,type="success")=>{
+    const id=Math.random().toString(36).slice(2);
+    setToasts(t=>[...t,{id,msg,type}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),4000);
+  },[]);
+
+  useEffect(()=>{
+    (async()=>{
+      let c={};
+      try{c=await api("/api/config");}catch{}
+      setCfg(c);
+      if(Token.get()){
+        try{
+          const me=await api("/api/auth/me");
+          const u={...me,roleLabel:ROLES[me.role]||me.role};
+          localStorage.setItem("titano_user",JSON.stringify(u));
+          setUser(u);
+        }catch{Token.clear();setUser(null);}
+      }
+      setBoot(false);
+    })();
+  },[]);
+
+  useEffect(()=>{
+    if(!cfg)return;
+    if(cfg.primaryColor)document.documentElement.style.setProperty("--p",cfg.primaryColor);
+    if(cfg.accentColor) document.documentElement.style.setProperty("--ac",cfg.accentColor);
+    if(cfg.faviconUrl){let lk=document.querySelector("link[rel='icon']");if(!lk){lk=document.createElement("link");lk.rel="icon";document.head.appendChild(lk);}lk.href=cfg.faviconUrl;}
+    if(cfg.sys_name)document.title=cfg.sys_name;
+  },[cfg]);
+
+  const reloadCfg=async()=>{try{setCfg(await api("/api/config"));}catch{}};
+  const reloadUser=async()=>{
+    try{const me=await api("/api/auth/me");const u={...me,roleLabel:ROLES[me.role]||me.role};localStorage.setItem("titano_user",JSON.stringify(u));setUser(u);}catch{}
+  };
+
+  const login=async(email,password)=>{
+    const d=await api("/api/auth/login",{method:"POST",body:{email,password}});
+    Token.set(d.accessToken);Token.setRefresh(d.refreshToken);
+    const u={...d.user,roleLabel:ROLES[d.user.role]||d.user.role};
+    localStorage.setItem("titano_user",JSON.stringify(u));setUser(u);return u;
+  };
+
+  const logout=async()=>{
+    try{await api("/api/auth/logout",{method:"POST",body:{refreshToken:Token.refresh()}});}catch{}
+    Token.clear();localStorage.removeItem("titano_user");localStorage.removeItem("titano_page");setUser(null);
+  };
+
+  const isAdmin=user?.role==="admin";
+  const isMgr=user?.role==="admin"||user?.role==="gerente";
+
+  /* Checa permissão: role-based + permissão custom no user.permissions[] */
+  const can=useCallback((key)=>{
+    if(!user)return false;
+    if(Array.isArray(user.permissions)&&user.permissions.includes(key))return true;
+    const req=(cfg&&cfg[`perm_${key}`])||"todos";
+    if(req==="todos")return true;
+    if(req==="gerente")return isMgr;
+    if(req==="admin")return isAdmin;
+    return false;
+  },[user,cfg,isAdmin,isMgr]);
+
+  /* Listas dinâmicas do config */
+  const departments=useMemo(()=>jp(cfg?.departments_json,[]),[cfg]);
+  const branches=useMemo(()=>jp(cfg?.branches_json,[]),[cfg]);
+  const customRoles=useMemo(()=>jp(cfg?.customRoles_json,[]),[cfg]);
+  const jobTitles=useMemo(()=>jp(cfg?.jobTitles_json,[]),[cfg]);
+  const skillsSuggestions=useMemo(()=>jp(cfg?.skills_json,[]),[cfg]);
+  const costCenters=useMemo(()=>jp(cfg?.costCenters_json,[]),[cfg]);
+
+  return(
+    <Ctx.Provider value={{cfg,setCfg,reloadCfg,user,setUser,reloadUser,login,logout,isAdmin,isMgr,can,boot,toast,departments,branches,customRoles,jobTitles,skillsSuggestions,costCenters}}>
+      {children}
+      <div style={{position:"fixed",top:20,right:20,zIndex:9999,display:"flex",flexDirection:"column",gap:8}}>
+        {toasts.map(t=>(
+          <div key={t.id} className="toast" style={{background:t.type==="error"?"var(--danger)":t.type==="info"?"var(--pm)":"var(--p)"}}>
+            {t.type==="error"?"⚠️ ":t.type==="info"?"💡 ":"✅ "}{t.msg}
+          </div>
+        ))}
+      </div>
+    </Ctx.Provider>
+  );
+}
+
+/* ── Utilitários ── */
+const fmtD=(iso,o)=>{if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return"—";return d.toLocaleDateString("pt-BR",o||{day:"2-digit",month:"2-digit",year:"numeric"});};
+const fmtDT=(iso)=>fmtD(iso,{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+
+function Av({name="?",url,size=36}){
+  const ini=(name||"?").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+  const isU=url&&(url.startsWith("http://")||url.startsWith("https://"));
+  return <div className="avatar" style={{width:size,height:size,fontSize:Math.round(size*.38)}}>{isU?<img src={url} alt={name}/>:(url&&url.length<=3?url:ini)}</div>;
+}
+function Spin({label="Carregando…"}){return <div style={{display:"flex",alignItems:"center",gap:10,color:"var(--mu)",fontSize:13.5}}><span style={{width:10,height:10,borderRadius:999,background:"var(--ac)",animation:"pulse 1.5s ease infinite"}}/>{label}</div>;}
+function ErrBox({error,onRetry}){return <div className="card" style={{padding:20,background:"#fef2f2",borderColor:"#fee2e2"}}><div style={{fontWeight:800,color:"#b91c1c"}}>Não foi possível carregar</div><div style={{fontSize:13.5,color:"#7f1d1d",marginTop:4}}>{error?.message||"Erro"}</div>{onRetry&&<button className="btn btn-ghost btn-sm" onClick={onRetry} style={{marginTop:10}}>Tentar novamente</button>}</div>;}
+function Empty({emoji="📭",title,hint,action}){return <div className="card empty fade-up"><div className="emo">{emoji}</div><div style={{fontWeight:800,fontSize:16}}>{title}</div>{hint&&<div style={{fontSize:13.5,color:"var(--mu)",marginTop:6,maxWidth:480,marginInline:"auto"}}>{hint}</div>}{action&&<div style={{marginTop:18}}>{action}</div>}</div>;}
+function Modal({open,onClose,title,children,footer,wide}){
+  useEffect(()=>{if(!open)return;const h=e=>e.key==="Escape"&&onClose?.();window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[open,onClose]);
+  if(!open)return null;
+  return <div className="modal-bg" onClick={onClose}><div className={`modal${wide?" modal-w":""}`} onClick={e=>e.stopPropagation()}><div className="mh"><h3 style={{fontSize:16,fontWeight:800}}>{title}</h3><button onClick={onClose} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"var(--mu)"}}>✕</button></div><div className="mb">{children}</div>{footer&&<div className="mf">{footer}</div>}</div></div>;
+}
+function Field({label,children}){return <label style={{display:"block"}}><span className="label">{label}</span>{children}</label>;}
+function Toggle({checked,onChange,label}){return <label style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}><span>{label}</span><label className="toggle"><input type="checkbox" checked={checked} onChange={e=>onChange(e.target.checked)}/><span className="toggle-slider"/></label></label>;}
+function Hint({children}){return <div style={{fontSize:13,color:"var(--mu)",padding:"12px 0"}}>{children}</div>;}
+
+function useRes(loader,deps=[]){
+  const [data,setData]=useState(null);const [loading,setLoading]=useState(true);const [error,setError]=useState(null);
+  const reload=useCallback(async()=>{setLoading(true);setError(null);try{setData(await loader());}catch(e){setError(e);}finally{setLoading(false);}},deps);
+  useEffect(()=>{reload();},[reload]);
+  return{data,loading,error,reload,setData};
+}
+
+/* ── Nav ── */
+const NAV=[
+  {id:"dashboard",label:"Início",icon:"🏠",group:"main"},
+  {id:"feed",label:"Feed",icon:"📰",group:"main"},
+  {id:"training",label:"Treinamentos",icon:"🎓",group:"main"},
+  {id:"directory",label:"Diretório",icon:"👤",group:"main"},
+  {id:"calendar",label:"Calendário",icon:"🗓",group:"main"},
+  {id:"recognition",label:"Reconhecimento",icon:"✨",group:"main"},
+  {id:"surveys",label:"Pesquisas",icon:"📋",group:"main"},
+  {id:"policies",label:"Políticas",icon:"⚖️",group:"main"},
+  {id:"powerbi",label:"Power BI",icon:"📈",group:"main"},
+  {id:"analytics",label:"Analytics",icon:"📊",group:"admin",mgr:true},
+  {id:"users",label:"Usuários",icon:"👥",group:"admin",adm:true},
+  {id:"settings",label:"Configurações",icon:"⚙️",group:"admin",adm:true},
+];
+const PT=Object.fromEntries(NAV.map(n=>[n.id,n.label]));
+
+/* ── Login ── */
+function Login(){
+  const {login,cfg,toast}=useApp();
+  const [email,setEmail]=useState("");const [pw,setPw]=useState("");const [show,setShow]=useState(false);const [busy,setBusy]=useState(false);
+  const go=async e=>{e.preventDefault();setBusy(true);try{await login(email.trim(),pw);toast("Bem-vindo(a)!");}catch(er){toast(er.message||"Credenciais inválidas","error");}finally{setBusy(false);}};
+  const brand=cfg?.brandName||"TITANO";const co=cfg?.companyName||"Metra Industrial";
+  return(
+    <div style={{minHeight:"100vh",display:"flex",background:"var(--bone)"}}>
+      <div style={{width:"44%",background:"linear-gradient(160deg,#1f4e2a,#2d6a3c 45%,#1a3d22)",display:"flex",alignItems:"center",justifyContent:"center",padding:60,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",width:400,height:400,borderRadius:"50%",background:"rgba(255,255,255,0.04)",top:-100,right:-100}}/>
+        <div style={{position:"absolute",width:280,height:280,borderRadius:"50%",background:"rgba(255,255,255,0.04)",bottom:-80,left:-60}}/>
+        <div style={{position:"relative",textAlign:"center",color:"#fff"}}>
+          <div style={{width:78,height:78,borderRadius:22,background:"rgba(255,255,255,0.13)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:42,margin:"0 auto 22px",border:"1.5px solid rgba(255,255,255,0.18)"}}>
+            {cfg?.logoUrl?<img src={cfg.logoUrl} alt="" style={{maxWidth:54,maxHeight:54}}/>:"🌿"}
+          </div>
+          <div style={{fontSize:34,fontWeight:900,letterSpacing:-0.5}}>{brand}</div>
+          <div style={{fontSize:12,opacity:.55,marginTop:4,fontWeight:700,letterSpacing:2.5,textTransform:"uppercase"}}>Intranet Corporativa</div>
+          <div style={{width:44,height:3,background:"var(--ac)",borderRadius:2,margin:"18px auto"}}/>
+          <p style={{fontSize:14,opacity:.65,lineHeight:1.7,maxWidth:300,margin:"0 auto"}}>{cfg?.slogan||"Conectando colaboradores em todas as filiais."}</p>
+        </div>
+      </div>
+      <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:48}}>
+        <div style={{width:"100%",maxWidth:400}}>
+          <h1 style={{fontSize:26,fontWeight:800}}>Bem-vindo de volta</h1>
+          <p style={{color:"var(--mu)",fontSize:14,marginTop:6,marginBottom:28}}>Acesse com seu e-mail corporativo {co.split(" ")[0]}</p>
+          <form onSubmit={go}>
+            <label className="label">E-mail</label>
+            <input className="input" type="email" value={email} onChange={e=>setEmail(e.target.value)} required placeholder="seu@metra.ind.br" style={{marginBottom:14}} autoFocus/>
+            <label className="label">Senha</label>
+            <div style={{position:"relative",marginBottom:18}}>
+              <input className="input" type={show?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} required placeholder="••••••••" style={{paddingRight:50}}/>
+              <button type="button" onClick={()=>setShow(s=>!s)} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",fontSize:14,color:"var(--mu)"}}>{show?"🙈":"👁"}</button>
+            </div>
+            <button type="submit" className="btn btn-primary" style={{width:"100%",justifyContent:"center",padding:12}} disabled={busy}>{busy?"Entrando…":"Entrar →"}</button>
+          </form>
+          <p style={{fontSize:11.5,color:"var(--m2)",textAlign:"center",marginTop:20}}>Problemas? Contate {cfg?.supportEmail||"ti@metra.ind.br"}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Shell ── */
+function Shell(){
+  const {user,logout,cfg,isAdmin,isMgr}=useApp();
+  const [page,setPage]=useState(()=>localStorage.getItem("titano_page")||"dashboard");
+  const [col,setCol]=useState(()=>localStorage.getItem("titano_col")==="1");
+  const dark=(cfg?.sidebarDark??"true")!=="false";
+  const go=id=>{setPage(id);localStorage.setItem("titano_page",id);};
+  useEffect(()=>{localStorage.setItem("titano_col",col?"1":"0");},[col]);
+  const main=NAV.filter(n=>n.group==="main");
+  const adm=NAV.filter(n=>n.group==="admin"&&((n.adm&&isAdmin)||(n.mgr&&isMgr)));
+  const W=col?64:230;
+  const NB=({item})=>{const a=page===item.id;return(
+    <button title={col?item.label:""} onClick={()=>go(item.id)} className={`nav-btn${dark?"":" light"}${a?" active":""}`} style={{justifyContent:col?"center":"flex-start",padding:col?"11px 0":"9px 12px"}}>
+      <span style={{fontSize:17,width:20,textAlign:"center",flexShrink:0}}>{item.icon}</span>
+      {!col&&<span style={{flex:1}}>{item.label}</span>}
+    </button>
+  );};
+  return(
+    <div style={{display:"flex",minHeight:"100vh",background:"var(--bone)"}}>
+      <aside style={{width:W,flexShrink:0,background:dark?"var(--sbg)":"#fff",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",zIndex:90,boxShadow:dark?"4px 0 20px #0003":"none",borderRight:dark?"none":"1.5px solid var(--ln)",transition:"width .2s ease"}}>
+        <div style={{padding:col?"18px 0":"18px 16px 14px",borderBottom:`1px solid ${dark?"rgba(255,255,255,0.08)":"var(--ls)"}`,display:"flex",alignItems:"center",justifyContent:col?"center":"space-between",flexShrink:0}}>
+          {!col&&<div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:34,height:34,borderRadius:9,background:dark?"rgba(255,255,255,.12)":"var(--p)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,fontWeight:900}}>
+              {cfg?.logoUrl?<img src={cfg.logoUrl} alt="" style={{maxWidth:24,maxHeight:24}}/>:"🌿"}
+            </div>
+            <div><div style={{fontWeight:900,fontSize:14,color:dark?"#fff":"var(--ink)"}}>{cfg?.brandName||"TITANO"}</div><div style={{fontSize:10,opacity:.55,color:dark?"#fff":"var(--mu)",textTransform:"uppercase",letterSpacing:1.2,fontWeight:600}}>Intranet</div></div>
+          </div>}
+          <button onClick={()=>setCol(c=>!c)} style={{background:"none",border:"none",color:dark?"rgba(255,255,255,.6)":"var(--mu)",cursor:"pointer",fontSize:14,padding:6}}>{col?"›":"‹"}</button>
+        </div>
+        <nav style={{flex:1,overflowY:"auto",padding:"14px 10px"}}>
+          {!col&&<div style={{fontSize:9.5,fontWeight:800,color:dark?"rgba(255,255,255,.35)":"var(--m2)",textTransform:"uppercase",letterSpacing:1.5,padding:"6px 8px 8px"}}>Geral</div>}
+          {main.map(n=><NB key={n.id} item={n}/>)}
+          {adm.length>0&&<>{!col&&<div style={{fontSize:9.5,fontWeight:800,color:dark?"rgba(255,255,255,.35)":"var(--m2)",textTransform:"uppercase",letterSpacing:1.5,padding:"16px 8px 8px"}}>Administração</div>}{adm.map(n=><NB key={n.id} item={n}/>)}</>}
+        </nav>
+        <div style={{padding:12,borderTop:`1px solid ${dark?"rgba(255,255,255,.08)":"var(--ls)"}`}}>
+          {!col?<div style={{display:"flex",alignItems:"center",gap:10}}>
+            <Av name={user?.name} url={user?.avatar} size={36}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:700,fontSize:13,color:dark?"#fff":"var(--ink)"}} className="truncate">{user?.name}</div>
+              <div style={{fontSize:11,opacity:.6,color:dark?"#fff":"var(--mu)"}} className="truncate">{user?.roleLabel}</div>
+            </div>
+            <button onClick={logout} title="Sair" style={{background:"none",border:"none",color:dark?"rgba(255,255,255,.6)":"var(--mu)",cursor:"pointer",fontSize:16,padding:6}}>⎋</button>
+          </div>:<button onClick={logout} title="Sair" style={{width:"100%",background:"none",border:"none",color:dark?"rgba(255,255,255,.6)":"var(--mu)",cursor:"pointer",fontSize:18,padding:6}}>⎋</button>}
+        </div>
+      </aside>
+      <main style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
+        <header style={{position:"sticky",top:0,zIndex:50,background:"var(--bone)",borderBottom:"1.5px solid var(--ln)",padding:"14px 28px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <div style={{fontSize:10.5,color:"var(--m2)",fontWeight:700,textTransform:"uppercase",letterSpacing:1.2}}>{cfg?.companyName||"Metra Industrial"}</div>
+            <div style={{fontWeight:900,fontSize:20}}>{PT[page]}</div>
+          </div>
+          <span className="chip">{user?.dept||user?.branch||user?.email}</span>
+        </header>
+        <div style={{padding:"24px 28px",flex:1}} className="fade-up"><PageRouter page={page} go={go}/></div>
+      </main>
+    </div>
+  );
+}
+
+function PageRouter({page,go}){
+  const {isAdmin,isMgr}=useApp();
+  switch(page){
+    case"dashboard":return<Dashboard go={go}/>;
+    case"feed":return<Feed/>;
+    case"training":return<FolderExpl kind="training" rootTitle="Treinamentos" rootIcon="🎓"/>;
+    case"policies":return<FolderExpl kind="policies" rootTitle="Políticas" rootIcon="⚖️"/>;
+    case"directory":return<Directory/>;
+    case"calendar":return<CalendarPage/>;
+    case"recognition":return<Recognition/>;
+    case"surveys":return<Surveys/>;
+    case"powerbi":return<PowerBI/>;
+    case"analytics":return can("analytics_view")?<Analytics/>:<NoAccess/>;
+    case"users":return isAdmin?<Users/>:<NoAccess/>;
+    case"settings":return<Settings/>;
+    default:return<Dashboard go={go}/>;
+  }
+}
+function NoAccess(){return<Empty emoji="🔒" title="Acesso restrito" hint="Esta página é disponível apenas para administradores ou gerentes."/>;}
+
+/* ── Dashboard ── */
+function Dashboard({go}){
+  const {user,cfg}=useApp();
+  const uR=useRes(()=>api("/api/users").catch(()=>[]));
+  const evR=useRes(()=>api("/api/calendar").catch(()=>[]));
+  const fR=useRes(()=>api("/api/feed?limit=3").catch(()=>({posts:[]})));
+  const bR=useRes(()=>api("/api/users/birthdays/month").catch(()=>[]));
+  const greeting=useMemo(()=>{const h=new Date().getHours();return h<12?"Bom dia":h<18?"Boa tarde":"Boa noite";},[]);
+  const upcoming=useMemo(()=>{const evs=Array.isArray(evR.data)?evR.data:[];const now=new Date();now.setHours(0,0,0,0);return evs.filter(e=>new Date(e.date)>=now).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,5);},[evR.data]);
+  const today=new Date().getDate();
+  const birthdays=Array.isArray(bR.data)?bR.data:[];
+  const posts=(fR.data?.posts||[]).slice(0,3);
+  const total=(uR.data||[]).length;
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+      <section className="card" style={{padding:"28px 30px",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",right:-60,top:-60,width:260,height:260,borderRadius:"50%",background:"radial-gradient(closest-side,color-mix(in srgb,var(--p) 14%,transparent),transparent)"}}/>
+        <div style={{position:"relative",display:"grid",gridTemplateColumns:"1fr auto",gap:20,alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:11,fontWeight:800,color:"var(--ac)",textTransform:"uppercase",letterSpacing:1.5}}>{cfg?.companyName||"Metra Industrial"}</div>
+            <h1 style={{fontSize:32,fontWeight:900,marginTop:6,letterSpacing:-0.5}}>{greeting}, {(user?.name||"").split(" ")[0]}!</h1>
+            <p style={{color:"var(--mu)",marginTop:8,fontSize:14,maxWidth:560}}>{cfg?.welcomeMessage||cfg?.about||"Sua intranet corporativa. Acompanhe novidades, treinamentos e o que acontece na empresa."}</p>
+            <div style={{display:"flex",gap:8,marginTop:14,flexWrap:"wrap"}}>
+              {cfg?.address&&<span className="chip">📍 {cfg.address}</span>}
+              {cfg?.supportPhone&&<span className="chip">☎ {cfg.supportPhone}</span>}
+              {cfg?.supportEmail&&<span className="chip">✉ {cfg.supportEmail}</span>}
+              {cfg?.website&&<a className="chip" href={cfg.website} target="_blank" rel="noreferrer">🌐 Site</a>}
+            </div>
+          </div>
+          {cfg?.logoUrl&&<img src={cfg.logoUrl} alt="" style={{maxHeight:90,opacity:.9}}/>}
+        </div>
+      </section>
+      <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14}}>
+        <KPI emoji="👥" label="Colaboradores" v={total||"—"}/>
+        <KPI emoji="🎂" label="Aniversariantes" v={birthdays.length}/>
+        <KPI emoji="🗓" label="Próx. eventos" v={upcoming.length}/>
+        <KPI emoji="📰" label="Posts no Feed" v={fR.data?.total??"—"}/>
+      </section>
+      <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:18}}>
+        <Panel title="🎂 Aniversariantes do mês" onMore={()=>go("directory")} loading={bR.loading}>
+          {birthdays.length===0?<Hint>Ninguém faz aniversário neste mês.</Hint>:birthdays.map(b=>(
+            <div key={b.id} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 0",borderBottom:"1px solid var(--ls)"}}>
+              <Av name={b.name} url={b.avatar} size={36}/>
+              <div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,fontSize:13.5}} className="truncate">{b.name}</div><div style={{fontSize:11.5,color:"var(--mu)"}} className="truncate">{b.dept||b.branch||""}</div></div>
+              <div style={{textAlign:"right"}}><div className="num" style={{fontWeight:800,fontSize:13.5}}>{String(b.day).padStart(2,"0")}/{String(new Date().getMonth()+1).padStart(2,"0")}</div>{b.day===today&&<span className="chip chip-amber">Hoje 🎉</span>}</div>
+            </div>
+          ))}
+        </Panel>
+        <Panel title="🗓 Próximos eventos" onMore={()=>go("calendar")} loading={evR.loading}>
+          {upcoming.length===0?<Hint>Sem eventos programados.</Hint>:upcoming.map(ev=>(
+            <div key={ev.id} style={{display:"flex",gap:14,padding:"10px 0",borderBottom:"1px solid var(--ls)"}}>
+              <div style={{width:46,textAlign:"center"}}><div className="num" style={{fontSize:20,fontWeight:800,color:"var(--p)"}}>{new Date(ev.date).getDate()}</div><div style={{fontSize:10,color:"var(--mu)",textTransform:"uppercase",fontWeight:700}}>{new Date(ev.date).toLocaleDateString("pt-BR",{month:"short"})}</div></div>
+              <div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,fontSize:13.5}} className="truncate">{ev.title}</div><div style={{fontSize:11.5,color:"var(--mu)"}} className="truncate">{ev.location||fmtDT(ev.date)}</div></div>
+            </div>
+          ))}
+        </Panel>
+        <Panel title="📰 Últimas no Feed" onMore={()=>go("feed")} loading={fR.loading}>
+          {posts.length===0?<Hint>Nenhuma publicação ainda.</Hint>:posts.map(p=>(
+            <div key={p.id} style={{padding:"10px 0",borderBottom:"1px solid var(--ls)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}><Av name={p.author?.name} url={p.author?.avatar} size={24}/><div style={{fontWeight:700,fontSize:12.5}} className="truncate">{p.author?.name}</div><div style={{fontSize:10.5,color:"var(--mu)"}}>· {fmtDT(p.createdAt)}</div>{p.pinned&&<span className="chip chip-amber" style={{marginLeft:"auto"}}>📌</span>}</div>
+              <p style={{fontSize:13,color:"var(--inks)",marginTop:6}} className="clamp2">{p.content}</p>
+            </div>
+          ))}
+        </Panel>
+      </section>
+    </div>
+  );
+}
+function KPI({emoji,label,v}){return <div className="card" style={{padding:18}}><div style={{fontSize:22,marginBottom:6}}>{emoji}</div><div style={{fontSize:10.5,color:"var(--mu)",textTransform:"uppercase",fontWeight:800,letterSpacing:1.2}}>{label}</div><div className="num" style={{fontSize:26,fontWeight:900,marginTop:4}}>{v}</div></div>;}
+function Panel({title,onMore,loading,children}){return <div className="card" style={{padding:20}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}><h3 style={{fontSize:14,fontWeight:800}}>{title}</h3>{onMore&&<button onClick={onMore} style={{background:"none",border:"none",color:"var(--p)",fontSize:12,fontWeight:800,cursor:"pointer"}}>Ver tudo →</button>}</div>{loading?<Spin/>:children}</div>;}
+
+/* ── Feed ── */
+const FCAT=[{id:"geral",label:"Geral",c:"#6b7a6d"},{id:"comunicado",label:"Comunicado",c:"#2563eb"},{id:"conquista",label:"Conquista",c:"#16a34a"},{id:"qualidade",label:"Qualidade",c:"#7c3aed"},{id:"seguranca",label:"Segurança",c:"#dc2626"},{id:"rh",label:"RH",c:"#d97706"},{id:"evento",label:"Evento",c:"#0891b2"}];
+
+function Feed(){
+  const {user,can,toast}=useApp();
+  const [filter,setFilter]=useState("");
+  const {data,loading,error,reload}=useRes(()=>api(`/api/feed?limit=30${filter?`&category=${filter}`:""}`).catch(()=>({posts:[]})),[filter]);
+  const posts=data?.posts||[];
+  const [open,setOpen]=useState(false);const [form,setForm]=useState({content:"",category:"geral",pinned:false});
+  const canPost=can("feed_post");const canPin=can("feed_pin");const canDel=can("feed_delete_any");
+
+  const submit=async()=>{
+    if(!form.content.trim())return toast("Conteúdo é obrigatório","error");
+    try{await api("/api/feed",{method:"POST",body:{...form,content:form.content.trim()}});setOpen(false);setForm({content:"",category:"geral",pinned:false});toast("Publicado!");reload();}
+    catch(e){toast(e.message,"error");}
+  };
+  const rm=async p=>{if(!confirm("Excluir?"))return;try{await api(`/api/feed/${p.id}`,{method:"DELETE"});toast("Removido");reload();}catch(e){toast(e.message,"error");}};
+  const like=async p=>{try{await api(`/api/feed/${p.id}/like`,{method:"POST"});reload();}catch(e){toast(e.message,"error");}};
+  if(error)return<ErrBox error={error} onRetry={reload}/>;
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:14,flexWrap:"wrap"}}>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          <button onClick={()=>setFilter("")} className="btn btn-sm" style={{background:filter===""?"var(--p)":"#fff",color:filter===""?"#fff":"var(--ink)",border:filter===""?"none":"1.5px solid var(--b2)"}}>Todas</button>
+          {FCAT.map(c=><button key={c.id} onClick={()=>setFilter(c.id)} className="btn btn-sm" style={{background:filter===c.id?c.c:"#fff",color:filter===c.id?"#fff":c.c,border:`1.5px solid ${filter===c.id?c.c:"var(--b2)"}`}}>{c.label}</button>)}
+        </div>
+        {canPost&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>＋ Nova publicação</button>}
+      </div>
+      {loading?<Spin/>:posts.length===0?<Empty emoji="📰" title="Sem publicações ainda" hint={canPost?"Seja o primeiro a compartilhar.":"Aguarde novas publicações."} action={canPost&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>Criar publicação</button>}/>:(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          {posts.map(p=>{
+            const cat=FCAT.find(c=>c.id===p.category)||FCAT[0];
+            return(
+              <article key={p.id} className="card" style={{padding:18}}>
+                <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                  <Av name={p.author?.name} url={p.author?.avatar}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                      <span style={{fontWeight:800,fontSize:14}}>{p.author?.name}</span>
+                      <span style={{fontSize:11.5,color:"var(--mu)"}}>· {fmtDT(p.createdAt)}</span>
+                      <span className="chip" style={{background:cat.c+"22",color:cat.c,borderColor:"transparent"}}>{cat.label}</span>
+                      {p.pinned&&<span className="chip chip-amber">📌 Fixado</span>}
+                    </div>
+                    <p style={{marginTop:8,fontSize:14.5,lineHeight:1.55,whiteSpace:"pre-wrap"}}>{p.content}</p>
+                    {p.imageUrl&&<img src={p.imageUrl} alt="" style={{marginTop:10,maxWidth:"100%",borderRadius:12}}/>}
+                    <div style={{display:"flex",gap:14,marginTop:12,alignItems:"center"}}>
+                      <button onClick={()=>like(p)} className="btn btn-sm btn-ghost" style={{color:p.liked?"var(--danger)":"var(--mu)"}}>{p.liked?"❤️":"🤍"} <span className="num">{p.likesCount??0}</span></button>
+                      <span className="chip" style={{background:"transparent",border:"none",color:"var(--mu)"}}>💬 <span className="num">{p.commentsCount??0}</span></span>
+                    </div>
+                  </div>
+                  {(canDel||p.authorId===user?.id)&&<button onClick={()=>rm(p)} className="btn btn-sm btn-danger" style={{flexShrink:0}}>🗑</button>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+      <Modal open={open} onClose={()=>setOpen(false)} title="Nova publicação" wide footer={<><button className="btn btn-ghost" onClick={()=>setOpen(false)}>Cancelar</button><button className="btn btn-primary" onClick={submit}>Publicar</button></>}>
+        <label className="label">Categoria</label>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>{FCAT.map(c=><button key={c.id} onClick={()=>setForm(f=>({...f,category:c.id}))} className="btn btn-sm" style={{background:form.category===c.id?c.c:"#fff",color:form.category===c.id?"#fff":c.c,border:`1.5px solid ${form.category===c.id?c.c:"var(--b2)"}`}}>{c.label}</button>)}</div>
+        <label className="label">Conteúdo</label>
+        <textarea className="input" value={form.content} onChange={e=>setForm({...form,content:e.target.value})} placeholder="O que está acontecendo?" autoFocus/>
+        {canPin&&<label style={{display:"flex",alignItems:"center",gap:8,marginTop:14,cursor:"pointer",fontSize:13.5}}><input type="checkbox" checked={form.pinned} onChange={e=>setForm({...form,pinned:e.target.checked})}/>📌 Fixar no topo</label>}
+      </Modal>
+    </div>
+  );
+}
+
+/* ── FolderExplorer (Training + Policies) ── */
+function FolderExpl({kind,rootTitle,rootIcon}){
+  const base=kind==="training"?"/api/training":"/api/policies";
+  const pk=kind==="training"?"training_manage":"policies_manage";
+  const viewKey=kind==="training"?"training_view":"policies_view";
+  const {can,toast}=useApp();
+  const canView=can(viewKey);const canMgr=can(pk);
+  if(!canView)return<NoAccess/>;
+  const {data,loading,error,reload}=useRes(()=>api(base).catch(()=>[]));
+  const tree=Array.isArray(data)?data:[];
+  const [path,setPath]=useState([]);
+
+  const current=useMemo(()=>{
+    if(!path.length)return null;
+    let nodes=tree,node=null;
+    for(const s of path){node=nodes.find(n=>n.id===s.id);if(!node)return null;nodes=node.children||[];}
+    return node;
+  },[tree,path]);
+
+  const folders=current?(current.children||[]):tree;
+  const items=current?(current.items||[]):[];
+  const [fModal,setFModal]=useState(false);const [iModal,setIModal]=useState(false);
+  if(error)return<ErrBox error={error} onRetry={reload}/>;
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+        <button onClick={()=>setPath([])} style={{background:"none",border:"none",color:!path.length?"var(--ink)":"var(--p)",fontWeight:!path.length?800:700,cursor:"pointer",fontSize:14}}>{rootIcon} {rootTitle}</button>
+        {path.map((p,i)=>(
+          <React.Fragment key={p.id}>
+            <span style={{color:"var(--m2)",fontSize:16}}>›</span>
+            <button onClick={()=>setPath(path.slice(0,i+1))} style={{background:"none",border:"none",cursor:"pointer",fontSize:14,color:i===path.length-1?"var(--ink)":"var(--p)",fontWeight:i===path.length-1?800:500}}>{p.icon} {p.name}</button>
+          </React.Fragment>
+        ))}
+        <div style={{marginLeft:"auto",display:"flex",gap:8}}>
+          {canMgr&&<><button className="btn btn-ghost btn-sm" onClick={()=>setFModal(true)}>📁 {current?"Nova subpasta":"Nova pasta"}</button>{current&&<button className="btn btn-primary btn-sm" onClick={()=>setIModal(true)}>＋ Adicionar item</button>}</>}
+        </div>
+      </div>
+      {loading?<Spin/>:(folders.length===0&&items.length===0)?<Empty emoji={rootIcon} title={current?"Pasta vazia":`${rootTitle} ainda está vazio`} hint={canMgr?(current?"Adicione itens ou crie subpastas.":"Crie a primeira pasta para começar."):"Aguarde o administrador organizar o conteúdo."} action={canMgr&&<div style={{display:"flex",gap:8,justifyContent:"center"}}><button className="btn btn-ghost" onClick={()=>setFModal(true)}>📁 Criar pasta</button>{current&&<button className="btn btn-primary" onClick={()=>setIModal(true)}>＋ Adicionar item</button>}</div>}/>:(
+        <>
+          {folders.length>0&&<section><div className="label" style={{marginBottom:10}}>{current?"Subpastas":"Pastas principais"}</div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:12}}>
+            {folders.map(f=><FCard key={f.id} f={f} onOpen={()=>setPath([...path,{id:f.id,name:f.name,icon:f.icon,color:f.color}])} onDel={canMgr?async()=>{if(!confirm(`Excluir "${f.name}"?`))return;try{await api(`${base}/folders/${f.id}`,{method:"DELETE"});toast("Pasta excluída");reload();}catch(e){toast(e.message,"error");}}:null}/>)}
+          </div></section>}
+          {items.length>0&&<section><div className="label" style={{marginBottom:10}}>Itens</div><div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {items.map(it=><IRow key={it.id} item={it} onDel={canMgr?async()=>{if(!confirm(`Excluir "${it.name}"?`))return;try{await api(`${base}/items/${it.id}`,{method:"DELETE"});toast("Removido");reload();}catch(e){toast(e.message,"error");}}:null}/>)}
+          </div></section>}
+        </>
+      )}
+      <FolderModal open={fModal} onClose={()=>setFModal(false)} onSave={async d=>{try{await api(`${base}/folders`,{method:"POST",body:{...d,parentId:current?.id||null}});toast("Pasta criada");setFModal(false);reload();}catch(e){toast(e.message,"error");}}}/>
+      <ItemModal open={iModal} kind={kind} onClose={()=>setIModal(false)} onSave={async d=>{if(!current)return;try{await api(`${base}/items`,{method:"POST",body:{...d,folderId:current.id}});toast("Item adicionado");setIModal(false);reload();}catch(e){toast(e.message,"error");}}}/>
+    </div>
+  );
+}
+
+function FCard({f,onOpen,onDel}){
+  const items=f.items?.length||0;const kids=f.children?.length||0;
+  return <div className="folder-card" onClick={onOpen} style={{borderTop:`4px solid ${f.color||"#1f4e2a"}`}}>
+    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+      <div style={{fontSize:34,marginBottom:10}}>{f.icon||"📁"}</div>
+      {onDel&&<button onClick={e=>{e.stopPropagation();onDel();}} style={{background:"none",border:"none",cursor:"pointer",fontSize:14,color:"var(--m2)"}}>🗑</button>}
+    </div>
+    <div style={{fontWeight:800,fontSize:14,lineHeight:1.25,marginBottom:4}}>{f.name}</div>
+    <div style={{fontSize:11.5,color:"var(--mu)"}}>{kids>0&&`${kids} subpasta${kids>1?"s":""}`}{kids>0&&items>0?" · ":""}{items>0&&`${items} item${items>1?"s":""}`}{!kids&&!items&&"vazia"}</div>
+  </div>;
+}
+
+function IRow({item,onDel}){
+  const icon=item.type==="video"?"▶️":item.type==="pdf"?"📄":"🔗";
+  return <div className="card" style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
+    <div style={{fontSize:26,flexShrink:0}}>{icon}</div>
+    <div style={{flex:1,minWidth:0}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+        <span style={{fontWeight:800,fontSize:14}}>{item.name}</span>
+        {item.mandatory&&<span className="chip chip-red">Obrigatório</span>}
+        {item.version&&<span className="chip chip-green">v{item.version}</span>}
+        <span className="chip">{item.type.toUpperCase()}</span>
+      </div>
+      {item.description&&<div style={{fontSize:13,color:"var(--mu)",marginTop:4}}>{item.description}</div>}
+      <div style={{display:"flex",gap:12,fontSize:11.5,color:"var(--m2)",marginTop:4}}>
+        {item.author&&<span>👤 {item.author}</span>}{item.duration&&<span>⏱ {item.duration}</span>}{item.fileSize&&<span>📦 {item.fileSize}</span>}
+      </div>
+    </div>
+    <a href={item.url||item.fileUrl} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">{item.type==="link"?"Acessar ↗":"Abrir ↗"}</a>
+    {onDel&&<button onClick={onDel} className="btn btn-danger btn-sm">🗑</button>}
+  </div>;
+}
+
+function FolderModal({open,onClose,onSave}){
+  const [name,setName]=useState("");const [icon,setIcon]=useState("📁");const [color,setColor]=useState("#1f4e2a");
+  const ICONS=["📁","📂","⚖️","🧑‍💼","🔒","🦺","🌿","📊","📋","🏢","💼","🎓","🔬","🚚","💡"];
+  const COLORS=["#1f4e2a","#2563eb","#7c3aed","#dc2626","#d97706","#059669","#0891b2","#ea580c"];
+  useEffect(()=>{if(open){setName("");setIcon("📁");setColor("#1f4e2a");}},[open]);
+  return <Modal open={open} onClose={onClose} title="Nova pasta" footer={<><button className="btn btn-ghost" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={()=>{if(name.trim())onSave({name:name.trim(),icon,color});}}>Criar</button></>}>
+    <label className="label">Nome</label>
+    <input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="Ex: Normas Internas" autoFocus/>
+    <label className="label" style={{marginTop:14}}>Ícone</label>
+    <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{ICONS.map(ic=><button key={ic} onClick={()=>setIcon(ic)} style={{width:38,height:38,borderRadius:10,border:`2px solid ${icon===ic?"var(--p)":"var(--b2)"}`,background:icon===ic?"var(--b4)":"#fff",fontSize:20,cursor:"pointer"}}>{ic}</button>)}</div>
+    <label className="label" style={{marginTop:14}}>Cor</label>
+    <div style={{display:"flex",gap:8}}>{COLORS.map(c=><button key={c} onClick={()=>setColor(c)} style={{width:28,height:28,borderRadius:"50%",background:c,border:color===c?"3px solid #fff":"2px solid transparent",boxShadow:color===c?`0 0 0 2px ${c}`:"none",cursor:"pointer"}}/>)}</div>
+  </Modal>;
+}
+
+function ItemModal({open,onClose,onSave,kind}){
+  const [f,setF]=useState({name:"",type:"link",url:"",description:"",author:"",version:"",mandatory:false});
+  useEffect(()=>{if(open)setF({name:"",type:"link",url:"",description:"",author:"",version:"",mandatory:false});},[open]);
+  const sub=()=>{if(!f.name.trim()||!f.url.trim())return;const p={...f,name:f.name.trim(),url:f.url.trim()};if(kind!=="policies")delete p.version;onSave(p);};
+  return <Modal open={open} onClose={onClose} title="Adicionar item" wide footer={<><button className="btn btn-ghost" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={sub}>Adicionar</button></>}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      <div style={{gridColumn:"1 / -1"}}><label className="label">Título</label><input className="input" value={f.name} onChange={e=>setF({...f,name:e.target.value})} autoFocus/></div>
+      <div><label className="label">Tipo</label><select className="input" value={f.type} onChange={e=>setF({...f,type:e.target.value})}><option value="link">🔗 Link externo</option><option value="pdf">📄 PDF</option><option value="video">▶️ Vídeo</option></select></div>
+      <div><label className="label">Autor</label><input className="input" value={f.author} onChange={e=>setF({...f,author:e.target.value})}/></div>
+      <div style={{gridColumn:"1 / -1"}}><label className="label">URL</label><input className="input" value={f.url} onChange={e=>setF({...f,url:e.target.value})} placeholder="https://..."/></div>
+      <div style={{gridColumn:"1 / -1"}}><label className="label">Descrição</label><textarea className="input" value={f.description} onChange={e=>setF({...f,description:e.target.value})}/></div>
+      {kind==="policies"&&<div><label className="label">Versão</label><input className="input" value={f.version} onChange={e=>setF({...f,version:e.target.value})} placeholder="1.0"/></div>}
+      <div style={{display:"flex",alignItems:"flex-end"}}><label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13.5}}><input type="checkbox" checked={f.mandatory} onChange={e=>setF({...f,mandatory:e.target.checked})}/>Marcar como obrigatório</label></div>
+    </div>
+  </Modal>;
+}
+
+/* ── Directory ── */
+function Directory(){
+  const {can,branches}=useApp();
+  if(!can("directory_view"))return<NoAccess/>;
+  const {data,loading,error,reload}=useRes(()=>api("/api/users/with-tenure").catch(()=>api("/api/users").catch(()=>[])));
+  const [q,setQ]=useState("");const [br,setBr]=useState("");const [prof,setProf]=useState(null);
+  const list=Array.isArray(data)?data:[];
+  const brList=useMemo(()=>[...new Set(list.map(u=>u.branch).filter(Boolean))].sort(),[list]);
+  const filtered=useMemo(()=>{const t=q.trim().toLowerCase();return list.filter(u=>{if(br&&u.branch!==br)return false;if(!t)return true;return[u.name,u.email,u.dept,u.branch,u.role].some(x=>(x||"").toLowerCase().includes(t));});},[list,q,br]);
+  if(error)return<ErrBox error={error} onRetry={reload}/>;
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+        <input className="input" style={{flex:1,minWidth:240}} placeholder="🔍 Buscar nome, e-mail, cargo, filial…" value={q} onChange={e=>setQ(e.target.value)}/>
+        <select className="input" style={{width:220}} value={br} onChange={e=>setBr(e.target.value)}>
+          <option value="">Todas as filiais</option>
+          {brList.map(b=><option key={b} value={b}>{b}</option>)}
+        </select>
+        <span className="chip">{filtered.length} pessoa{filtered.length!==1?"s":""}</span>
+      </div>
+      {loading?<Spin/>:filtered.length===0?<Empty emoji="👥" title="Nenhum colaborador encontrado"/>:(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:14}}>
+          {filtered.map(u=>(
+            <article key={u.id} className="card" style={{padding:18,cursor:"pointer"}} onClick={()=>setProf(u)}>
+              <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                <div style={{position:"relative"}}><Av name={u.name} url={u.avatar} size={56}/>{u.onlineAt&&<div style={{position:"absolute",bottom:2,right:2,width:12,height:12,borderRadius:"50%",background:"#16a34a",border:"2px solid #fff"}}/>}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:800,fontSize:14}} className="truncate">{u.name}</div>
+                  <div style={{fontSize:12,color:"var(--mu)"}} className="truncate">{u.dept||"—"}</div>
+                  <div style={{fontSize:11,color:"var(--m2)",marginTop:2}} className="truncate">{u.branch}</div>
+                  {u.statusMsg&&<div style={{fontSize:11,color:"var(--mu)",marginTop:4,fontStyle:"italic"}}>"{u.statusMsg}"</div>}
+                </div>
+              </div>
+              <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid var(--ls)",display:"flex",flexDirection:"column",gap:4,fontSize:12}}>
+                <a href={`mailto:${u.email}`} style={{color:"var(--p)",textDecoration:"none"}} className="truncate">✉ {u.email}</a>
+                {u.phone&&<span style={{color:"var(--mu)"}}>📱 {u.phone}</span>}
+                {(u.tempo_empresa||u.admission_fmt)&&<span style={{color:"var(--mu)"}}>📅 {u.tempo_empresa||"—"} de empresa</span>}
+                {(u.birth_date_fmt||u.birthDate)&&<span style={{color:"var(--mu)"}}>🎂 {(u.birth_date_fmt||"").slice(0,5)||fmtD(u.birthDate,{day:"2-digit",month:"2-digit"})}</span>}
+              </div>
+              {u.skills&&u.skills.length>0&&<div style={{marginTop:10,display:"flex",gap:4,flexWrap:"wrap"}}>{u.skills.slice(0,4).map(s=><span key={s} className="chip">{s}</span>)}</div>}
+            </article>
+          ))}
+        </div>
+      )}
+      {prof&&<ProfModal user={prof} onClose={()=>setProf(null)}/>}
+    </div>
+  );
+}
+
+function ProfModal({user:u,onClose}){
+  return <Modal open onClose={onClose} title="Perfil" wide>
+    <div style={{display:"flex",gap:20,alignItems:"flex-start",marginBottom:20}}>
+      <Av name={u.name} url={u.avatar} size={80}/>
+      <div>
+        <div style={{fontWeight:900,fontSize:22}}>{u.name}</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
+          <span className="chip chip-green">{ROLES[u.role]||u.role}</span>
+          {u.onlineAt&&<span className="chip chip-green">● Online</span>}
+          {u.status&&u.status!=="ativo"&&<span className="chip chip-amber">{u.status}</span>}
+        </div>
+        {u.statusMsg&&<div style={{fontSize:13,color:"var(--mu)",marginTop:6,fontStyle:"italic"}}>"{u.statusMsg}"</div>}
+      </div>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      {[["🏢 Departamento",u.dept],["📍 Filial",u.branch],["✉ E-mail",u.email],["📱 Telefone",u.phone],["📅 Admissão",u.admission_fmt||fmtD(u.admission)],["⏱ Tempo de empresa",u.tempo_empresa||"—"],["🎂 Aniversário",(u.birth_date_fmt||"").slice(0,5)||fmtD(u.birthDate,{day:"2-digit",month:"2-digit"})||"—"],["👤 Gestor",u.manager?.name||"—"]].map(([l,v])=>(
+        <div key={l} className="card" style={{padding:12}}><div style={{fontSize:10.5,color:"var(--mu)",fontWeight:800,textTransform:"uppercase",letterSpacing:.8}}>{l}</div><div style={{fontSize:14,fontWeight:600,marginTop:4}}>{v||"—"}</div></div>
+      ))}
+    </div>
+    {u.skills&&u.skills.length>0&&<div style={{marginTop:14}}><div className="label">Competências</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>{u.skills.map(s=><span key={s} className="chip">{s}</span>)}</div></div>}
+    {u.reports&&u.reports.length>0&&<div style={{marginTop:14}}><div className="label">Equipe ({u.reports.length})</div><div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:6}}>{u.reports.map(r=><div key={r.id} style={{display:"flex",alignItems:"center",gap:6}}><Av name={r.name} url={r.avatar} size={28}/><span style={{fontSize:13}}>{r.name}</span></div>)}</div></div>}
+  </Modal>;
+}
+
+/* ── Calendar ── */
+const EVT={reuniao:{label:"Reunião",c:"#2563eb",e:"📅"},treinamento:{label:"Treinamento",c:"#7c3aed",e:"🎓"},prazo:{label:"Prazo",c:"#dc2626",e:"⏰"},evento:{label:"Evento",c:"#16a34a",e:"🎉"},feriado:{label:"Feriado",c:"#d97706",e:"🏖"},manutencao:{label:"Manutenção",c:"#0891b2",e:"🔧"}};
+
+function CalendarPage(){
+  const {can,toast}=useApp();const canC=can("calendar_create");
+  const {data,loading,error,reload}=useRes(()=>api("/api/calendar").catch(()=>[]));
+  const events=Array.isArray(data)?data:[];
+  const [cur,setCur]=useState(()=>{const d=new Date();d.setDate(1);return d;});
+  const [open,setOpen]=useState(false);const [form,setForm]=useState({title:"",description:"",date:"",endDate:"",type:"reuniao",location:""});
+  const ml=cur.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+  const dim=new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate();
+  const off=new Date(cur.getFullYear(),cur.getMonth(),1).getDay();
+  const cells=Array.from({length:off+dim},(_,i)=>i<off?null:i-off+1);
+  const byDay=useMemo(()=>{const m={};for(const e of events){const d=new Date(e.date);if(d.getFullYear()!==cur.getFullYear()||d.getMonth()!==cur.getMonth())continue;(m[d.getDate()]=m[d.getDate()]||[]).push(e);}return m;},[events,cur]);
+  const sub=async()=>{if(!form.title.trim()||!form.date)return toast("Título e data obrigatórios","error");try{await api("/api/calendar",{method:"POST",body:{...form,date:new Date(form.date).toISOString(),endDate:form.endDate?new Date(form.endDate).toISOString():null}});toast("Evento criado");setOpen(false);setForm({title:"",description:"",date:"",endDate:"",type:"reuniao",location:""});reload();}catch(e){toast(e.message,"error");}};
+  const rm=async id=>{if(!confirm("Excluir?"))return;try{await api(`/api/calendar/${id}`,{method:"DELETE"});toast("Removido");reload();}catch(e){toast(e.message,"error");}};
+  if(error)return<ErrBox error={error} onRetry={reload}/>;
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setCur(new Date(cur.getFullYear(),cur.getMonth()-1,1))}>←</button>
+          <h2 style={{fontWeight:800,fontSize:18,textTransform:"capitalize"}}>{ml}</h2>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setCur(new Date(cur.getFullYear(),cur.getMonth()+1,1))}>→</button>
+          <button className="btn btn-ghost btn-sm" onClick={()=>{const d=new Date();d.setDate(1);setCur(d);}}>Hoje</button>
+        </div>
+        {canC&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>＋ Novo evento</button>}
+      </div>
+      {loading?<Spin/>:<div className="card" style={{overflow:"hidden"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:"var(--b5)",borderBottom:"1.5px solid var(--ln)"}}>
+          {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=><div key={d} style={{padding:10,textAlign:"center",fontSize:11,fontWeight:800,color:"var(--mu)",textTransform:"uppercase",letterSpacing:1.2}}>{d}</div>)}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)"}}>
+          {cells.map((day,i)=><div key={i} style={{minHeight:104,padding:6,borderRight:"1px solid var(--ls)",borderBottom:"1px solid var(--ls)"}}>
+            {day&&<><div className="num" style={{fontSize:12,color:"var(--mu)",padding:"2px 4px",fontWeight:700}}>{String(day).padStart(2,"0")}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:3,marginTop:3}}>
+                {(byDay[day]||[]).slice(0,3).map(e=>{const t=EVT[e.type]||EVT.reuniao;return <div key={e.id} title={e.description||""} style={{fontSize:10.5,padding:"3px 6px",borderRadius:5,background:t.c+"22",color:t.c,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.e} {e.title}</div>;})}
+                {(byDay[day]||[]).length>3&&<div style={{fontSize:10,color:"var(--m2)",padding:"2px 6px"}}>+{byDay[day].length-3} mais</div>}
+              </div>
+            </>}
+          </div>)}
+        </div>
+      </div>}
+      <section className="card" style={{padding:18}}>
+        <h3 style={{fontSize:14,fontWeight:800,marginBottom:10}}>Eventos do mês</h3>
+        {events.filter(e=>{const d=new Date(e.date);return d.getMonth()===cur.getMonth()&&d.getFullYear()===cur.getFullYear();}).length===0?<Hint>Nenhum evento neste mês.</Hint>:events.filter(e=>{const d=new Date(e.date);return d.getMonth()===cur.getMonth()&&d.getFullYear()===cur.getFullYear();}).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>{const t=EVT[e.type]||EVT.reuniao;return(
+          <div key={e.id} style={{display:"flex",gap:14,padding:"10px 0",borderBottom:"1px solid var(--ls)"}}>
+            <div className="num" style={{fontSize:12,color:"var(--mu)",width:120}}>{fmtDT(e.date)}</div>
+            <div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8}}><span className="chip" style={{background:t.c+"22",color:t.c,borderColor:"transparent"}}>{t.e} {t.label}</span><span style={{fontWeight:700,fontSize:13.5}}>{e.title}</span></div>{e.location&&<div style={{fontSize:12,color:"var(--mu)",marginTop:2}}>📍 {e.location}</div>}{e.description&&<div style={{fontSize:13,marginTop:4}}>{e.description}</div>}</div>
+            {canC&&<button onClick={()=>rm(e.id)} className="btn btn-danger btn-sm">🗑</button>}
+          </div>
+        );})}
+      </section>
+      <Modal open={open} onClose={()=>setOpen(false)} title="Novo evento" wide footer={<><button className="btn btn-ghost" onClick={()=>setOpen(false)}>Cancelar</button><button className="btn btn-primary" onClick={sub}>Salvar</button></>}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          <div style={{gridColumn:"1 / -1"}}><label className="label">Título</label><input className="input" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></div>
+          <div><label className="label">Tipo</label><select className="input" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>{Object.entries(EVT).map(([k,v])=><option key={k} value={k}>{v.e} {v.label}</option>)}</select></div>
+          <div><label className="label">Local</label><input className="input" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/></div>
+          <div><label className="label">Início</label><input className="input" type="datetime-local" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/></div>
+          <div><label className="label">Fim (opcional)</label><input className="input" type="datetime-local" value={form.endDate} onChange={e=>setForm({...form,endDate:e.target.value})}/></div>
+          <div style={{gridColumn:"1 / -1"}}><label className="label">Descrição</label><textarea className="input" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+/* ── Recognition ── */
+const BDGS=[{id:"star",e:"⭐",label:"Estrela",c:"#d97706"},{id:"heart",e:"❤️",label:"Coração",c:"#dc2626"},{id:"rocket",e:"🚀",label:"Foguete",c:"#2563eb"},{id:"shield",e:"🛡",label:"Escudo",c:"#0891b2"},{id:"leaf",e:"🌿",label:"Folha",c:"#16a34a"},{id:"trophy",e:"🏆",label:"Troféu",c:"#7c3aed"}];
+function Recognition(){
+  const {user,can,toast}=useApp();const canS=can("recognition_send");
+  const kR=useRes(()=>api("/api/recognition").catch(()=>[]));
+  const uR=useRes(()=>api("/api/users").catch(()=>[]));
+  const kudos=Array.isArray(kR.data)?kR.data:[];const users=Array.isArray(uR.data)?uR.data:[];
+  const [open,setOpen]=useState(false);const [form,setForm]=useState({toId:"",badge:"star",message:""});
+  const sub=async()=>{if(!form.toId||!form.message.trim())return toast("Selecione um colega e escreva uma mensagem","error");try{await api("/api/recognition",{method:"POST",body:{toId:form.toId,badge:form.badge,message:form.message.trim()}});toast("Reconhecimento enviado!");setOpen(false);setForm({toId:"",badge:"star",message:""});kR.reload();}catch(e){toast(e.message,"error");}};
+  const like=async k=>{try{await api(`/api/recognition/${k.id}/like`,{method:"POST"});kR.reload();}catch(e){toast(e.message,"error");}};
+  if(kR.error)return<ErrBox error={kR.error} onRetry={kR.reload}/>;
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+        <p style={{color:"var(--mu)",fontSize:14}}>Reconheça publicamente um colega que fez a diferença.</p>
+        {canS&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>✨ Reconhecer alguém</button>}
+      </div>
+      {kR.loading?<Spin/>:kudos.length===0?<Empty emoji="✨" title="Nenhum reconhecimento ainda" hint="Seja o primeiro a destacar o trabalho de alguém." action={canS&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>Reconhecer alguém</button>}/>:(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:14}}>
+          {kudos.map(k=>{const b=BDGS.find(x=>x.id===k.badge)||BDGS[0];return(
+            <article key={k.id} className="card" style={{padding:20,position:"relative",overflow:"hidden",borderTop:`4px solid ${b.c}`}}>
+              <div style={{position:"absolute",top:14,right:14,fontSize:30}}>{b.e}</div>
+              <div style={{fontSize:14.5,lineHeight:1.55,paddingRight:32}}>"{k.message}"</div>
+              <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid var(--ls)",display:"flex",alignItems:"center",gap:10}}>
+                <Av name={k.to?.name} url={k.to?.avatar} size={36}/>
+                <div style={{flex:1,minWidth:0}}><div style={{fontSize:11,color:"var(--mu)"}}>para</div><div style={{fontWeight:800,fontSize:13.5}} className="truncate">{k.to?.name}</div></div>
+                {can("recognition_like")&&<button onClick={()=>like(k)} className="btn btn-sm btn-ghost" style={{color:k.liked?"var(--danger)":"var(--mu)"}}>{k.liked?"❤️":"🤍"} <span className="num">{k.likesCount??0}</span></button>}
+              </div>
+              <div style={{fontSize:10.5,color:"var(--m2)",marginTop:8,display:"flex",justifyContent:"space-between"}}><span>de {k.from?.name}</span><span className="num">{fmtDT(k.createdAt)}</span></div>
+            </article>
+          );})}
+        </div>
+      )}
+      <Modal open={open} onClose={()=>setOpen(false)} title="Reconhecer um colega" wide footer={<><button className="btn btn-ghost" onClick={()=>setOpen(false)}>Cancelar</button><button className="btn btn-primary" onClick={sub}>Enviar</button></>}>
+        <label className="label">Para quem</label>
+        <select className="input" value={form.toId} onChange={e=>setForm({...form,toId:e.target.value})}><option value="">Selecione…</option>{users.filter(u=>u.id!==user?.id).map(u=><option key={u.id} value={u.id}>{u.name} — {u.dept||u.role}</option>)}</select>
+        <label className="label" style={{marginTop:14}}>Badge</label>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>{BDGS.map(b=><button key={b.id} onClick={()=>setForm({...form,badge:b.id})} style={{padding:12,borderRadius:12,border:`2px solid ${form.badge===b.id?b.c:"var(--b2)"}`,background:form.badge===b.id?b.c+"15":"#fff",cursor:"pointer",textAlign:"center"}}><div style={{fontSize:24}}>{b.e}</div><div style={{fontSize:11,fontWeight:700,color:form.badge===b.id?b.c:"var(--mu)",marginTop:2}}>{b.label}</div></button>)}</div>
+        <label className="label" style={{marginTop:14}}>Mensagem</label>
+        <textarea className="input" value={form.message} onChange={e=>setForm({...form,message:e.target.value})} placeholder="O que essa pessoa fez de especial?"/>
+      </Modal>
+    </div>
+  );
+}
+
+/* ── Surveys ── */
+function Surveys(){
+  const {can,toast}=useApp();const canC=can("surveys_create");
+  const {data,loading,error,reload}=useRes(()=>api("/api/surveys").catch(()=>[]));
+  const list=Array.isArray(data)?data:[];
+  const [resp,setResp]=useState(null);const [newS,setNewS]=useState(false);
+  if(error)return<ErrBox error={error} onRetry={reload}/>;
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+        <p style={{color:"var(--mu)",fontSize:14}}>Pesquisas e NPS.</p>
+        {canC&&<button className="btn btn-primary" onClick={()=>setNewS(true)}>＋ Nova pesquisa</button>}
+      </div>
+      {loading?<Spin/>:list.length===0?<Empty emoji="📋" title="Nenhuma pesquisa ativa" hint={canC?"Crie a primeira enquete.":"Aguarde novas pesquisas."}/>:(
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {list.map(s=>{const closed=s.status==="closed"||(s.deadline&&new Date(s.deadline)<new Date());return(
+            <article key={s.id} className="card" style={{padding:20}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:14,flexWrap:"wrap"}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}><h3 style={{fontSize:16,fontWeight:800}}>{s.title}</h3>{s.anonymous&&<span className="chip chip-blue">🔒 Anônima</span>}{closed?<span className="chip">Encerrada</span>:s.deadline&&<span className="chip chip-amber">até {fmtD(s.deadline)}</span>}{s.answered&&<span className="chip chip-green">✓ Respondida</span>}</div>
+                  {s.description&&<p style={{fontSize:13.5,color:"var(--mu)",marginTop:6}}>{s.description}</p>}
+                  <div style={{fontSize:12,color:"var(--m2)",marginTop:8,display:"flex",gap:14}}><span>📝 {s.questionsCount??0} perguntas</span><span>👥 {s.responsesCount??0} respostas</span></div>
+                </div>
+                {!closed&&!s.answered&&s.status==="active"&&can("surveys_respond")&&<button className="btn btn-primary btn-sm" onClick={()=>setResp(s)}>Responder →</button>}
+              </div>
+            </article>
+          );})}
+        </div>
+      )}
+      {resp&&<SurvRespModal survey={resp} onClose={()=>setResp(null)} onDone={()=>{setResp(null);reload();}}/>}
+      {newS&&<SurvCreateModal onClose={()=>setNewS(false)} onDone={()=>{setNewS(false);reload();}}/>}
+    </div>
+  );
+}
+
+function SurvRespModal({survey,onClose,onDone}){
+  const {toast}=useApp();const [full,setFull]=useState(null);const [ans,setAns]=useState({});
+  useEffect(()=>{api(`/api/surveys/${survey.id}`).then(setFull).catch(e=>toast(e.message,"error"));},[survey.id]);
+  const sub=async()=>{try{await api(`/api/surveys/${survey.id}/respond`,{method:"POST",body:{answers:ans}});toast("Resposta registrada");onDone();}catch(e){toast(e.message,"error");}};
+  if(!full)return<Modal open onClose={onClose} title={survey.title}><Spin/></Modal>;
+  return <Modal open onClose={onClose} wide title={survey.title} footer={<><button className="btn btn-ghost" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={sub}>Enviar</button></>}>
+    {(full.questions||[]).map(q=>(
+      <div key={q.id} style={{marginBottom:18}}>
+        <div style={{fontWeight:700,marginBottom:8,fontSize:14}}>{q.text}{q.required&&<span style={{color:"var(--danger)"}}> *</span>}</div>
+        {q.type==="text"&&<textarea className="input" value={ans[q.id]||""} onChange={e=>setAns({...ans,[q.id]:e.target.value})}/>}
+        {q.type==="yesno"&&<div style={{display:"flex",gap:8}}>{["sim","não"].map(v=><button key={v} onClick={()=>setAns({...ans,[q.id]:v})} className="btn btn-sm" style={{background:ans[q.id]===v?"var(--p)":"#fff",color:ans[q.id]===v?"#fff":"var(--ink)",border:"1.5px solid var(--b2)"}}>{v}</button>)}</div>}
+        {(q.type==="choice"||q.type==="multi")&&<div style={{display:"flex",flexDirection:"column",gap:6}}>{(q.options||[]).map((opt,i)=>{const sel=q.type==="multi"?Array.isArray(ans[q.id])&&ans[q.id].includes(opt):ans[q.id]===opt;return <button key={i} onClick={()=>{if(q.type==="multi"){const a=Array.isArray(ans[q.id])?[...ans[q.id]]:[];const x=a.indexOf(opt);if(x>=0)a.splice(x,1);else a.push(opt);setAns({...ans,[q.id]:a});}else setAns({...ans,[q.id]:opt});}} style={{textAlign:"left",padding:"10px 14px",borderRadius:10,border:`2px solid ${sel?"var(--p)":"var(--b2)"}`,background:sel?"color-mix(in srgb,var(--p) 8%,transparent)":"#fff",cursor:"pointer",fontSize:14}}>{sel?"● ":"○ "}{opt}</button>;})}</div>}
+        {(q.type==="scale"||q.type==="nps")&&<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{Array.from({length:q.type==="nps"?11:5},(_,i)=>i+(q.type==="nps"?0:1)).map(n=><button key={n} onClick={()=>setAns({...ans,[q.id]:n})} style={{width:42,height:42,borderRadius:10,border:`2px solid ${ans[q.id]===n?"var(--p)":"var(--b2)"}`,background:ans[q.id]===n?"var(--p)":"#fff",color:ans[q.id]===n?"#fff":"var(--ink)",fontWeight:700,cursor:"pointer"}}>{n}</button>)}</div>}
+        {q.type==="stars"&&<div style={{display:"flex",gap:6}}>{[1,2,3,4,5].map(n=><button key={n} onClick={()=>setAns({...ans,[q.id]:n})} style={{background:"none",border:"none",fontSize:30,cursor:"pointer",color:(ans[q.id]||0)>=n?"#fcd34d":"var(--b3)"}}>★</button>)}</div>}
+      </div>
+    ))}
+  </Modal>;
+}
+
+function SurvCreateModal({onClose,onDone}){
+  const {toast}=useApp();
+  const [f,setF]=useState({title:"",description:"",anonymous:false,deadline:"",questions:[{type:"text",text:"",required:false,options:[]}]});
+  const sq=(i,p)=>setF(x=>({...x,questions:x.questions.map((q,idx)=>idx===i?{...q,...p}:q)}));
+  const sub=async()=>{if(!f.title.trim())return toast("Título obrigatório","error");const qs=f.questions.filter(q=>q.text.trim());if(!qs.length)return toast("Adicione ao menos uma pergunta","error");try{await api("/api/surveys",{method:"POST",body:{...f,questions:qs,deadline:f.deadline||null}});toast("Pesquisa criada");onDone();}catch(e){toast(e.message,"error");}};
+  return <Modal open onClose={onClose} wide title="Nova pesquisa" footer={<><button className="btn btn-ghost" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={sub}>Publicar</button></>}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+      <div style={{gridColumn:"1 / -1"}}><label className="label">Título</label><input className="input" value={f.title} onChange={e=>setF({...f,title:e.target.value})} autoFocus/></div>
+      <div style={{gridColumn:"1 / -1"}}><label className="label">Descrição</label><textarea className="input" value={f.description} onChange={e=>setF({...f,description:e.target.value})}/></div>
+      <div><label className="label">Encerra em</label><input className="input" type="date" value={f.deadline} onChange={e=>setF({...f,deadline:e.target.value})}/></div>
+      <div style={{display:"flex",alignItems:"flex-end"}}><label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13.5}}><input type="checkbox" checked={f.anonymous} onChange={e=>setF({...f,anonymous:e.target.checked})}/>🔒 Respostas anônimas</label></div>
+    </div>
+    <div style={{borderTop:"1.5px solid var(--ln)",marginTop:18,paddingTop:18}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><strong>Perguntas</strong><button className="btn btn-ghost btn-sm" onClick={()=>setF(x=>({...x,questions:[...x.questions,{type:"text",text:"",required:false,options:[]}]}))}>＋ Adicionar</button></div>
+      {f.questions.map((q,i)=>(
+        <div key={i} style={{border:"1.5px solid var(--b2)",borderRadius:12,padding:14,marginBottom:10}}>
+          <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
+            <span className="chip">#{i+1}</span>
+            <select className="input" style={{width:180}} value={q.type} onChange={e=>sq(i,{type:e.target.value,options:[]})}>
+              <option value="text">📝 Texto livre</option><option value="yesno">✓✗ Sim/Não</option><option value="choice">○ Escolha única</option><option value="multi">☑ Múltipla</option><option value="scale">1-5 Escala</option><option value="nps">0-10 NPS</option><option value="stars">★ Estrelas</option>
+            </select>
+            <label style={{display:"flex",alignItems:"center",gap:6,fontSize:12.5}}><input type="checkbox" checked={q.required} onChange={e=>sq(i,{required:e.target.checked})}/> Obrigatória</label>
+            {f.questions.length>1&&<button onClick={()=>setF(x=>({...x,questions:x.questions.filter((_,j)=>j!==i)}))} className="btn btn-danger btn-sm" style={{marginLeft:"auto"}}>🗑</button>}
+          </div>
+          <input className="input" placeholder="Texto da pergunta" value={q.text} onChange={e=>sq(i,{text:e.target.value})}/>
+          {(q.type==="choice"||q.type==="multi")&&<div style={{marginTop:8}}><label className="label">Opções (uma por linha)</label><textarea className="input" style={{minHeight:100}} value={Array.isArray(q.options)?q.options.join("\n"):""} onChange={e=>sq(i,{options:e.target.value.split("\n")})} placeholder={"Opção A\nOpção B\nOpção C"}/><div style={{fontSize:11,color:"var(--mu)",marginTop:4}}>Digite uma opção por linha. Linhas em branco são ignoradas ao salvar.</div></div>}
+        </div>
+      ))}
+    </div>
+  </Modal>;
+}
+
+/* ── PowerBI ── */
+function PowerBI(){
+  const {cfg,isAdmin}=useApp();const url=cfg?.powerBiUrl||"";
+  if(!url)return<Empty emoji="📈" title="Power BI não configurado" hint={isAdmin?"Vá em Configurações → 🔌 Integrações e cole a URL embed.":"Solicite ao administrador."}/>;
+  return <div className="card" style={{overflow:"hidden"}}><div style={{padding:"12px 18px",borderBottom:"1.5px solid var(--ln)",display:"flex",justifyContent:"space-between"}}><strong>Painel Power BI</strong><a href={url} target="_blank" rel="noreferrer" style={{fontSize:12,color:"var(--p)",fontWeight:800,textDecoration:"none"}}>Abrir ↗</a></div><iframe title="PowerBI" src={url} style={{width:"100%",height:"calc(100vh - 240px)",minHeight:480,border:0}} allowFullScreen/></div>;
+}
+
+/* ── Analytics ── */
+function Analytics(){
+  const {data:ad,loading:al,error:ae,reload:ar}=useRes(()=>api("/api/analytics/dashboard").catch(()=>null));
+  const {data:us,loading:ul}=useRes(()=>api("/api/users/stats").catch(()=>null));
+  const loading=al||ul;
+  if(loading)return<Spin/>;
+  if(ae&&!us)return<ErrBox error={ae} onRetry={ar}/>;
+  // Mescla dados do analytics/dashboard (se existir) com stats de usuários (sempre existe)
+  const stats=us||{};
+  const data=ad||{};
+  const totals=data.totals||data.counts||{
+    "Colaboradores ativos": stats.ativos||0,
+    "Total de usuários": stats.total||0,
+    "Em férias": stats.ferias||0,
+    "Inativos": stats.inativos||0,
+  };
+  const byDept=data.byDept||[];
+  const byBranch=Array.isArray(stats.byBranch)?stats.byBranch:[];
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      {Object.keys(totals).length>0&&<section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14}}>{Object.entries(totals).map(([k,v])=><KPI key={k} emoji="📊" label={k} v={typeof v==="number"?v:"—"}/>)}</section>}
+      {(byDept.length>0||byBranch.length>0)&&<section className="card" style={{padding:20}}><h3 style={{fontSize:14,fontWeight:800,marginBottom:14}}>{byDept.length>0?"Por departamento":"Por filial"}</h3>{(byDept.length>0?byDept:byBranch).map((d,i)=>{const max=Math.max(...(byDept.length>0?byDept:byBranch).map(x=>x.count||x.value||0),1);const v=d.count??d.value??0;return <div key={i} style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12.5,marginBottom:3}}><span>{d.dept||d.branch||d.label||"—"}</span><span className="num">{v}</span></div><div style={{height:8,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}><div style={{height:"100%",width:`${(v/max)*100}%`,background:"var(--p)"}}/></div></div>;})}
+      </section>}
+    </div>
+  );
+}
+
+/* ── Users ── */
+const PERMS_KEYS=[
+  {group:"Feed",perms:[{k:"publicar_feed",l:"Publicar no Feed"},{k:"excluir_publicacoes",l:"Excluir Publicações"}]},
+  {group:"Treinamentos",perms:[{k:"ver_treinamentos",l:"Ver Treinamentos"},{k:"gerenciar_treinamentos",l:"Gerenciar Treinamentos"}]},
+  {group:"Usuários",perms:[{k:"ver_usuarios",l:"Ver Usuários"},{k:"gerenciar_usuarios",l:"Gerenciar Usuários"}]},
+  {group:"Relatórios",perms:[{k:"acessar_relatorios",l:"Acessar Relatórios"}]},
+  {group:"Sistema",perms:[{k:"configuracoes_sistema",l:"Configurações do Sistema"}]},
+];
+
+function Users(){
+  const {toast,departments,branches,customRoles}=useApp();
+  const {data,loading,error,reload}=useRes(()=>api("/api/users").catch(()=>[]));
+  const list=Array.isArray(data)?data:[];
+  const [q,setQ]=useState("");const [editing,setEditing]=useState(null);const [profView,setProfView]=useState(null);
+  const blank={name:"",email:"",password:"",role:"colaborador",dept:"",branch:"",phone:"",birthDate:"",admission:"",status:"ativo",skills:"",permissions:[],managerId:""};
+  const [form,setForm]=useState(blank);
+
+  const filtered=useMemo(()=>{const t=q.trim().toLowerCase();if(!t)return list;return list.filter(u=>[u.name,u.email,u.role,u.dept,u.branch].some(x=>(x||"").toLowerCase().includes(t)));},[list,q]);
+
+  const openNew=()=>{setForm(blank);setEditing({});};
+  const openEdit=u=>{setForm({name:u.name||"",email:u.email||"",password:"",role:u.role||"colaborador",dept:u.dept||"",branch:u.branch||"",phone:u.phone||"",birthDate:u.birthDate?new Date(u.birthDate).toISOString().slice(0,10):"",admission:u.admission?new Date(u.admission).toISOString().slice(0,10):"",status:u.status||"ativo",skills:(u.skills||[]).join(", "),permissions:u.permissions||[],managerId:u.managerId||""});setEditing(u);};
+  const togglePerm=(k)=>setForm(f=>({...f,permissions:f.permissions.includes(k)?f.permissions.filter(p=>p!==k):[...f.permissions,k]}));
+
+  const save=async()=>{
+    try{
+      const payload={...form,birthDate:form.birthDate||null,admission:form.admission||null,managerId:form.managerId||null,skills:form.skills.split(",").map(s=>s.trim()).filter(Boolean)};
+      if(!editing?.id){
+        if(!form.email.trim()||!form.password){toast("E-mail e senha obrigatórios","error");return;}
+        await api("/api/users",{method:"POST",body:payload});
+      }else{
+        if(!payload.password)delete payload.password;
+        await api(`/api/users/${editing.id}`,{method:"PATCH",body:payload});
+      }
+      toast("Salvo");setEditing(null);reload();
+    }catch(e){toast(e.message,"error");}
+  };
+
+  const rm=async u=>{if(!confirm(`Desativar ${u.name||u.email}?`))return;try{await api(`/api/users/${u.id}`,{method:"DELETE"});toast("Desativado");reload();}catch(e){toast(e.message,"error");}};
+  if(error)return<ErrBox error={error} onRetry={reload}/>;
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:4}}>
+        {[["👥","Total",list.length],["✅","Ativos",list.filter(u=>u.status==="ativo").length],["🛡","Admins",list.filter(u=>u.role==="admin").length],["📍","Filiais",[...new Set(list.map(u=>u.branch).filter(Boolean))].length]].map(([e,l,v])=><KPI key={l} emoji={e} label={l} v={v}/>)}
+      </div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
+        <input className="input" style={{maxWidth:340}} placeholder="🔍 Buscar usuário…" value={q} onChange={e=>setQ(e.target.value)}/>
+        <button className="btn btn-primary" onClick={openNew}>＋ Novo usuário</button>
+      </div>
+      {loading?<Spin/>:filtered.length===0?<Empty emoji="👥" title="Nenhum usuário"/>:(
+        <div className="card" style={{overflow:"hidden"}}><div style={{overflowX:"auto"}}>
+          <table className="t">
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Depto / Filial</th><th>Status</th><th>Admissão</th><th style={{textAlign:"right"}}>Ações</th></tr></thead>
+            <tbody>{filtered.map(u=>(
+              <tr key={u.id}>
+                <td><div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>setProfView(u)}><Av name={u.name} url={u.avatar} size={32}/><strong>{u.name||"—"}</strong></div></td>
+                <td style={{color:"var(--mu)"}}>{u.email}</td>
+                <td><span className={`chip${u.role==="admin"?" chip-amber":u.role==="gerente"?" chip-blue":""}`}>{ROLES[u.role]||u.role}</span></td>
+                <td style={{color:"var(--mu)"}}>{[u.dept,u.branch].filter(Boolean).join(" · ")||"—"}</td>
+                <td><span className={`chip${u.status==="ativo"?" chip-green":u.status==="inativo"?" chip-red":" chip-amber"}`}>{u.status}</span></td>
+                <td className="num" style={{color:"var(--mu)"}}>{u.admission?fmtD(u.admission,{day:"2-digit",month:"2-digit",year:"numeric"}):"—"}</td>
+                <td style={{textAlign:"right",whiteSpace:"nowrap"}}>
+                  <button className="btn btn-ghost btn-sm" onClick={()=>openEdit(u)}>✏️</button>
+                  <button className="btn btn-danger btn-sm" onClick={()=>rm(u)} style={{marginLeft:4}}>🗑</button>
+                </td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div></div>
+      )}
+
+      <Modal open={!!editing} onClose={()=>setEditing(null)} wide title={editing?.id?"Editar usuário":"Novo usuário"}
+        footer={<><button className="btn btn-ghost" onClick={()=>setEditing(null)}>Cancelar</button><button className="btn btn-primary" onClick={save}>Salvar</button></>}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          <Field label="Nome completo"><input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></Field>
+          <Field label="E-mail corporativo"><input className="input" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></Field>
+          <Field label={editing?.id?"Nova senha (opcional)":"Senha"}><input className="input" type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></Field>
+          <Field label="Perfil de Acesso">
+            <select className="input" value={form.role} onChange={e=>setForm({...form,role:e.target.value})}>
+              <option value="colaborador">Colaborador</option><option value="gerente">Gerente</option><option value="admin">Administrador</option><option value="visitante">Visitante</option>
+            </select>
+          </Field>
+          <Field label="Departamento">
+            <select className="input" value={form.dept} onChange={e=>setForm({...form,dept:e.target.value})}>
+              <option value="">Selecione…</option>{departments.map(d=><option key={d} value={d}>{d}</option>)}
+            </select>
+          </Field>
+          <Field label="Filial">
+            <select className="input" value={form.branch} onChange={e=>setForm({...form,branch:e.target.value})}>
+              <option value="">Selecione…</option>{branches.map(b=><option key={b.name||b} value={b.name||b}>{b.name||b}</option>)}
+            </select>
+          </Field>
+          <Field label="Telefone"><input className="input" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/></Field>
+          <Field label="Status">
+            <select className="input" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
+              <option value="ativo">Ativo</option><option value="ferias">Férias</option><option value="afastado">Afastado</option><option value="inativo">Inativo</option>
+            </select>
+          </Field>
+          <Field label="Data de nascimento"><input className="input" type="date" value={form.birthDate} onChange={e=>setForm({...form,birthDate:e.target.value})}/></Field>
+          <Field label="Data de admissão"><input className="input" type="date" value={form.admission} onChange={e=>setForm({...form,admission:e.target.value})}/></Field>
+          <Field label="Gestor (direto superior)">
+            <select className="input" value={form.managerId} onChange={e=>setForm({...form,managerId:e.target.value})}>
+              <option value="">Sem gestor</option>
+              {list.filter(u=>u.id!==editing?.id).map(u=><option key={u.id} value={u.id}>{u.name} — {ROLES[u.role]||u.role}</option>)}
+            </select>
+          </Field>
+          <div style={{gridColumn:"1 / -1"}}><Field label="Competências (separadas por vírgula)"><input className="input" value={form.skills} onChange={e=>setForm({...form,skills:e.target.value})} placeholder="Excel, SAP, Vendas…"/></Field></div>
+        </div>
+        <div style={{marginTop:20,borderTop:"1.5px solid var(--ln)",paddingTop:16}}>
+          <div style={{fontWeight:800,fontSize:13,marginBottom:12}}>Permissões Customizadas <span style={{color:"var(--mu)",fontWeight:400,fontSize:11}}>(além do perfil)</span></div>
+          {PERMS_KEYS.map(g=>(
+            <div key={g.group} style={{marginBottom:12}}>
+              <div className="label">{g.group}</div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {g.perms.map(p=><button key={p.k} onClick={()=>togglePerm(p.k)} className="btn btn-sm" style={{background:form.permissions.includes(p.k)?"var(--p)":"#fff",color:form.permissions.includes(p.k)?"#fff":"var(--ink)",border:"1.5px solid var(--b2)"}}>{p.l}</button>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
+      {profView&&<ProfModal user={profView} onClose={()=>setProfView(null)}/>}
+    </div>
+  );
+}
+
+/* ============================================================================
+ *                              SETTINGS
+ * ========================================================================== */
+function Settings(){
+  const {user,isAdmin}=useApp();
+  const personalTabs=[
+    {id:"perfil",label:"👤 Meu Perfil"},
+    {id:"senha",label:"🔑 Senha"},
+    {id:"aparencia",label:"🎨 Aparência"},
+  ];
+  const adminTabs=[
+    {id:"cargos",label:"🏷 Cargos & Funções"},
+    {id:"depts",label:"🏢 Departamentos"},
+    {id:"filiais",label:"📍 Filiais"},
+    {id:"listas",label:"📋 Listas"},
+    {id:"geral",label:"⚙️ Geral"},
+    {id:"empresa",label:"✨ Identidade"},
+    {id:"permissoes",label:"🛡 Permissões"},
+    {id:"reconhecimento",label:"✨ Reconhecimento"},
+    {id:"integracoes",label:"🔌 Integrações"},
+  ];
+  const [tab,setTab]=useState("perfil");
+  return(
+    <div style={{maxWidth:1000,margin:"0 auto"}}>
+      {isAdmin&&<div style={{background:"linear-gradient(135deg,#7c3aed11,#2563eb11)",border:"1.5px solid #7c3aed33",borderRadius:14,padding:"12px 18px",marginBottom:18,display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:22}}>🛡</span>
+        <div><div style={{fontWeight:800,fontSize:13.5,color:"#7c3aed"}}>Painel de Administrador</div><div style={{fontSize:12,color:"var(--mu)"}}>Alterações aqui afetam todos os usuários da intranet.</div></div>
+      </div>}
+      <div style={{display:"flex",gap:4,marginBottom:22,background:"var(--b4)",borderRadius:14,padding:4,flexWrap:"wrap"}}>
+        {personalTabs.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:"1 1 auto",minWidth:120,padding:"10px 14px",borderRadius:10,border:"none",background:tab===t.id?"#fff":"transparent",fontWeight:700,fontSize:12.5,cursor:"pointer",color:tab===t.id?"var(--ink)":"var(--mu)",boxShadow:tab===t.id?"var(--sm)":"none"}}>{t.label}</button>
+        ))}
+        {isAdmin&&adminTabs.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:"1 1 auto",minWidth:120,padding:"10px 14px",borderRadius:10,border:"none",background:tab===t.id?"#fff":"transparent",fontWeight:700,fontSize:12.5,cursor:"pointer",color:tab===t.id?"var(--ink)":"var(--mu)",boxShadow:tab===t.id?"var(--sm)":"none"}}>{t.label}</button>
+        ))}
+      </div>
+      {tab==="perfil"&&<TabPerfil/>}
+      {tab==="senha"&&<TabSenha/>}
+      {tab==="aparencia"&&<TabAparencia/>}
+      {tab==="cargos"&&isAdmin&&<TabCargos/>}
+      {tab==="depts"&&isAdmin&&<TabDepts/>}
+      {tab==="filiais"&&isAdmin&&<TabFiliais/>}
+      {tab==="geral"&&isAdmin&&<TabGeral/>}
+      {tab==="empresa"&&isAdmin&&<TabEmpresa/>}
+      {tab==="permissoes"&&isAdmin&&<TabPermissoes/>}
+      {tab==="listas"&&isAdmin&&<TabListas/>}
+      {tab==="reconhecimento"&&isAdmin&&<TabReconhecimento/>}
+      {tab==="integracoes"&&isAdmin&&<TabIntegracoes/>}
+    </div>
+  );
+}
+
+/* ── Tab: Meu Perfil ── */
+function TabPerfil(){
+  const {user,reloadUser,toast,departments,branches}=useApp();
+  const [f,setF]=useState({
+    name:user?.name||"",phone:user?.phone||"",statusMsg:user?.statusMsg||"",avatar:user?.avatar||"",
+    birthDate:user?.birthDate?new Date(user.birthDate).toISOString().slice(0,10):"",
+    skills:(user?.skills||[]).join(", "),
+  });
+  const [busy,setBusy]=useState(false);
+  const save=async()=>{if(!f.name.trim())return toast("Nome obrigatório","error");setBusy(true);try{await api("/api/users/me",{method:"PATCH",body:{...f,birthDate:f.birthDate||null,skills:f.skills.split(",").map(s=>s.trim()).filter(Boolean)}});await reloadUser();toast("Perfil atualizado!");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800,marginBottom:18}}>Meu perfil</h3>
+      <div style={{display:"flex",gap:18,marginBottom:18,alignItems:"center"}}>
+        <Av name={f.name} url={f.avatar} size={64}/>
+        <div><div style={{fontWeight:800,fontSize:15}}>{user?.name}</div><div style={{fontSize:12,color:"var(--mu)"}}>{user?.email}</div><div style={{fontSize:12,color:"var(--mu)",marginTop:2}}>{user?.dept} · {user?.branch}</div></div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Field label="Nome"><input className="input" value={f.name} onChange={e=>setF({...f,name:e.target.value})}/></Field>
+        <Field label="Telefone"><input className="input" value={f.phone} onChange={e=>setF({...f,phone:e.target.value})}/></Field>
+        <Field label="Avatar (iniciais ou URL)"><input className="input" value={f.avatar} onChange={e=>setF({...f,avatar:e.target.value})} placeholder="TS ou https://..."/></Field>
+        <Field label="Data de nascimento"><input className="input" type="date" value={f.birthDate} onChange={e=>setF({...f,birthDate:e.target.value})}/></Field>
+        <div style={{gridColumn:"1 / -1"}}><Field label="Status"><input className="input" value={f.statusMsg} onChange={e=>setF({...f,statusMsg:e.target.value})} placeholder="Ex: Em reunião, disponível, em viagem..."/></Field></div>
+        <div style={{gridColumn:"1 / -1"}}><Field label="Competências (separadas por vírgula)"><input className="input" value={f.skills} onChange={e=>setF({...f,skills:e.target.value})}/></Field></div>
+      </div>
+      <div style={{marginTop:18,display:"flex",justifyContent:"flex-end"}}><button className="btn btn-primary" onClick={save} disabled={busy}>{busy?"Salvando…":"Salvar perfil"}</button></div>
+    </section>
+  );
+}
+
+/* ── Tab: Senha ── */
+function TabSenha(){
+  const {toast}=useApp();
+  const [f,setF]=useState({current:"",next:"",confirm:""});
+  const save=async()=>{if(!f.current)return toast("Informe sua senha atual","error");if(f.next.length<8)return toast("Nova senha: mínimo 8 caracteres","error");if(f.next!==f.confirm)return toast("Senhas não coincidem","error");try{await api("/api/auth/password",{method:"PATCH",body:{currentPassword:f.current,newPassword:f.next}});toast("Senha alterada!");setF({current:"",next:"",confirm:""});}catch(e){toast(e.message,"error");}};
+  return(
+    <section className="card" style={{padding:24,maxWidth:520}}>
+      <h3 style={{fontSize:16,fontWeight:800,marginBottom:18}}>Alterar senha</h3>
+      <Field label="Senha atual"><input className="input" type="password" value={f.current} onChange={e=>setF({...f,current:e.target.value})}/></Field>
+      <div style={{height:10}}/><Field label="Nova senha"><input className="input" type="password" value={f.next} onChange={e=>setF({...f,next:e.target.value})}/></Field>
+      <div style={{height:10}}/><Field label="Confirmar nova senha"><input className="input" type="password" value={f.confirm} onChange={e=>setF({...f,confirm:e.target.value})}/></Field>
+      <div style={{marginTop:18,display:"flex",justifyContent:"flex-end"}}><button className="btn btn-primary" onClick={save}>Atualizar senha</button></div>
+    </section>
+  );
+}
+
+/* ── Tab: Aparência ── */
+function TabAparencia(){
+  const [dark,setDark]=useState(()=>localStorage.getItem("titano_dark")==="1");
+  const [fs,setFs]=useState(()=>parseInt(localStorage.getItem("titano_fs")||"14"));
+  const tog=()=>{const v=!dark;setDark(v);document.body.classList.toggle("dark",v);localStorage.setItem("titano_dark",v?"1":"0");};
+  const apply=s=>{setFs(s);document.documentElement.style.fontSize=s+"px";localStorage.setItem("titano_fs",s);};
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800,marginBottom:18}}>Aparência</h3>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 0",borderBottom:"1px solid var(--ls)"}}>
+        <div><div style={{fontWeight:700,fontSize:14}}>Modo escuro</div><div style={{fontSize:12.5,color:"var(--mu)",marginTop:2}}>Aplica tema escuro à interface</div></div>
+        <button onClick={tog} className="btn btn-ghost btn-sm">{dark?"☀️ Claro":"🌙 Escuro"}</button>
+      </div>
+      <div style={{padding:"14px 0"}}>
+        <div style={{fontWeight:700,fontSize:14}}>Tamanho da fonte</div>
+        <div style={{fontSize:12.5,color:"var(--mu)",marginTop:2,marginBottom:12}}>Atual: <strong>{fs}px</strong></div>
+        <div style={{display:"flex",gap:6}}>{[12,14,16,18].map(s=><button key={s} onClick={()=>apply(s)} className="btn btn-sm" style={{background:fs===s?"var(--p)":"#fff",color:fs===s?"#fff":"var(--ink)",border:"1.5px solid var(--b2)"}}>{s}px</button>)}</div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Tab: Cargos & Funções ── */
+const SYSTEM_ROLES=[{id:"admin",label:"Administrador",color:"#7c3aed"},{id:"gerente",label:"Gerente",color:"#d97706"},{id:"colaborador",label:"Colaborador",color:"#6b7280"},{id:"visitante",label:"Visitante",color:"#9aaa9c"}];
+
+function TabCargos(){
+  const {cfg,reloadCfg,toast,customRoles}=useApp();
+  const [items,setItems]=useState(customRoles);
+  const [busy,setBusy]=useState(false);
+  const [newLabel,setNewLabel]=useState("");const [newColor,setNewColor]=useState("#2563eb");
+  useEffect(()=>{setItems(customRoles);},[customRoles]);
+
+  const save=async(list)=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:{customRoles_json:JSON.stringify(list)}});await reloadCfg();toast("Cargos atualizados");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  const add=()=>{if(!newLabel.trim())return;const id=newLabel.toLowerCase().replace(/[^a-z0-9]+/g,"_").slice(0,30);const nl=[...items,{id,label:newLabel.trim(),color:newColor,system:false}];setItems(nl);setNewLabel("");save(nl);};
+  const edit=(i,p)=>{const nl=items.map((x,idx)=>idx===i?{...x,...p}:x);setItems(nl);};
+  const remove=async(i)=>{if(!confirm(`Remover "${items[i].label}"?`))return;const nl=items.filter((_,idx)=>idx!==i);setItems(nl);save(nl);};
+  const persist=()=>save(items);
+
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800}}>Cargos & Funções</h3>
+      <p style={{fontSize:13,color:"var(--mu)",marginTop:4,marginBottom:18}}>Gerencie os labels de cargo exibidos no sistema. Cargos do sistema não podem ser removidos.</p>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+        {SYSTEM_ROLES.map(r=>(
+          <div key={r.id} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:999,background:r.color+"15",border:`1.5px solid ${r.color}33`,fontSize:12.5,fontWeight:700,color:r.color}}>
+            <span style={{width:8,height:8,borderRadius:999,background:r.color}}/>{r.label}<span className="chip" style={{fontSize:9,padding:"1px 6px"}}>sistema</span>
+          </div>
+        ))}
+        {items.map((r,i)=>(
+          <div key={i} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:999,background:r.color+"15",border:`1.5px solid ${r.color}33`,fontSize:12.5,fontWeight:700,color:r.color}}>
+            <span style={{width:8,height:8,borderRadius:999,background:r.color}}/>
+            <input value={r.label} onChange={e=>edit(i,{label:e.target.value})} onBlur={persist} style={{background:"transparent",border:"none",fontWeight:700,fontSize:12.5,color:r.color,width:Math.max(60,r.label.length*7),outline:"none"}}/>
+            <input type="color" value={r.color} onChange={e=>edit(i,{color:e.target.value})} onBlur={persist} style={{width:18,height:18,border:"none",cursor:"pointer",background:"transparent"}}/>
+            <button onClick={()=>remove(i)} style={{background:"none",border:"none",color:r.color,cursor:"pointer",fontSize:14,padding:0}}>✕</button>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:8,alignItems:"center",borderTop:"1.5px solid var(--ls)",paddingTop:14}}>
+        <input className="input" style={{flex:1,maxWidth:280}} value={newLabel} onChange={e=>setNewLabel(e.target.value)} placeholder="Nome do novo cargo…" onKeyDown={e=>e.key==="Enter"&&add()}/>
+        <input type="color" value={newColor} onChange={e=>setNewColor(e.target.value)} style={{width:42,height:38,border:"1.5px solid var(--b2)",borderRadius:8,cursor:"pointer"}}/>
+        <button className="btn btn-primary btn-sm" onClick={add} disabled={busy}>＋ Novo Cargo</button>
+      </div>
+      <div style={{marginTop:18,padding:14,background:"#fef3c7",borderRadius:10,fontSize:12.5,color:"#7c2d12",lineHeight:1.6}}>
+        💡 <strong>Como usar:</strong> Os cargos aqui definidos aparecem no cadastro de usuários como opções de função/label. Eles são apenas informativos — as permissões de acesso são controladas pelo <strong>Perfil de Acesso</strong> (Admin, Gerente, Colaborador, Visitante).
+      </div>
+    </section>
+  );
+}
+
+/* ── Tab: Departamentos ── */
+function TabDepts(){
+  const {departments,reloadCfg,toast}=useApp();
+  const [items,setItems]=useState(departments);
+  const [neu,setNeu]=useState("");const [busy,setBusy]=useState(false);
+  useEffect(()=>{setItems(departments);},[departments]);
+  const save=async(list)=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:{departments_json:JSON.stringify(list)}});await reloadCfg();toast("Departamentos atualizados");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  const add=()=>{if(!neu.trim())return;if(items.includes(neu.trim()))return toast("Já existe","error");const nl=[...items,neu.trim()];setItems(nl);setNeu("");save(nl);};
+  const remove=(i)=>{if(!confirm(`Remover "${items[i]}"?`))return;const nl=items.filter((_,idx)=>idx!==i);setItems(nl);save(nl);};
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800}}>Departamentos</h3>
+      <p style={{fontSize:13,color:"var(--mu)",marginTop:4,marginBottom:18}}>Departamentos disponíveis para atribuição aos colaboradores.</p>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+        {items.map((d,i)=>(
+          <span key={d} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,background:"var(--b4)",border:"1.5px solid var(--b2)",fontSize:13,fontWeight:600}}>
+            🏢 {d}
+            <button onClick={()=>remove(i)} style={{background:"none",border:"none",color:"var(--danger)",cursor:"pointer",fontSize:13,padding:0}}>✕</button>
+          </span>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        <input className="input" style={{flex:1}} value={neu} onChange={e=>setNeu(e.target.value)} placeholder="Nome do departamento…" onKeyDown={e=>e.key==="Enter"&&add()}/>
+        <button className="btn btn-primary" onClick={add} disabled={busy}>Adicionar</button>
+      </div>
+    </section>
+  );
+}
+
+/* ── Tab: Filiais ── */
+function TabFiliais(){
+  const {branches,reloadCfg,toast}=useApp();
+  const [items,setItems]=useState(branches);
+  const [open,setOpen]=useState(false);const [form,setForm]=useState({name:"",uf:"",tipo:"Filial",status:"ativa"});
+  const [busy,setBusy]=useState(false);
+  useEffect(()=>{setItems(branches);},[branches]);
+  const save=async(list)=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:{branches_json:JSON.stringify(list)}});await reloadCfg();toast("Filiais atualizadas");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  const add=()=>{if(!form.name.trim())return toast("Nome obrigatório","error");if(items.find(x=>(x.name||x)===form.name.trim()))return toast("Já existe","error");const nl=[...items,{...form,name:form.name.trim()}];setItems(nl);setOpen(false);setForm({name:"",uf:"",tipo:"Filial",status:"ativa"});save(nl);};
+  const remove=(i)=>{const name=items[i].name||items[i];if(!confirm(`Remover "${name}"?`))return;const nl=items.filter((_,idx)=>idx!==i);setItems(nl);save(nl);};
+  return(
+    <section className="card" style={{padding:24}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+        <div><h3 style={{fontSize:16,fontWeight:800}}>Filiais</h3><p style={{fontSize:13,color:"var(--mu)",marginTop:4}}>Todas as unidades da rede TITANO / Metra Industrial.</p></div>
+        <button className="btn btn-primary btn-sm" onClick={()=>setOpen(true)}>＋ Nova filial</button>
+      </div>
+      <div className="card" style={{overflow:"hidden",marginTop:14}}>
+        <table className="t">
+          <thead><tr><th>Filial</th><th>UF</th><th>Tipo</th><th>Status</th><th style={{textAlign:"right"}}>Ações</th></tr></thead>
+          <tbody>
+            {items.map((b,i)=>{const o=typeof b==="string"?{name:b,uf:"",tipo:"Filial",status:"ativa"}:b;return(
+              <tr key={i}>
+                <td><strong>{o.name}</strong></td>
+                <td style={{color:"var(--mu)"}}>{o.uf||"—"}</td>
+                <td><span className={`chip${o.tipo==="Indústria"?" chip-blue":""}`}>{o.tipo||"Filial"}</span></td>
+                <td><span className={`chip${o.status==="ativa"?" chip-green":" chip-red"}`}>{o.status||"ativa"}</span></td>
+                <td style={{textAlign:"right"}}><button onClick={()=>remove(i)} className="btn btn-danger btn-sm">🗑</button></td>
+              </tr>
+            );})}
+          </tbody>
+        </table>
+      </div>
+      <Modal open={open} onClose={()=>setOpen(false)} title="Nova filial" footer={<><button className="btn btn-ghost" onClick={()=>setOpen(false)}>Cancelar</button><button className="btn btn-primary" onClick={add} disabled={busy}>Adicionar</button></>}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:12}}>
+          <Field label="Nome da filial"><input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex: João Pinheiro (MG)" autoFocus/></Field>
+          <Field label="UF"><input className="input" value={form.uf} onChange={e=>setForm({...form,uf:e.target.value.toUpperCase().slice(0,2)})} placeholder="MG"/></Field>
+          <Field label="Tipo"><select className="input" value={form.tipo} onChange={e=>setForm({...form,tipo:e.target.value})}><option value="Indústria">Indústria</option><option value="Filial">Filial</option><option value="Escritório">Escritório</option></select></Field>
+          <Field label="Status"><select className="input" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option value="ativa">Ativa</option><option value="inativa">Inativa</option></select></Field>
+        </div>
+      </Modal>
+    </section>
+  );
+}
+
+/* ── Tab: Geral ── */
+function TabGeral(){
+  const {cfg,reloadCfg,toast}=useApp();
+  const KEYS=["sys_name","sys_welcome","sys_session_timeout","sys_default_role","sys_timezone",
+              "sys_company_cnpj","sys_max_upload_mb","sys_allowed_types",
+              "sys_maintenance","sys_manual_approval","sys_feed_moderation",
+              "sys_chat_enabled","sys_training_notif","sys_feed_require_cat"];
+  const [f,setF]=useState({});const [busy,setBusy]=useState(false);
+  useEffect(()=>{if(!cfg)return;setF(Object.fromEntries(KEYS.map(k=>[k,cfg[k]??""])))},[cfg]);
+  const tog=(k,v)=>setF(x=>({...x,[k]:v?"true":"false"}));
+  const save=async()=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:f});await reloadCfg();toast("Configurações salvas");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800}}>Configurações do Sistema</h3>
+      <p style={{fontSize:13,color:"var(--mu)",marginTop:4,marginBottom:18}}>Comportamentos gerais da intranet.</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:18}}>
+        <Field label="Nome do sistema"><input className="input" value={f.sys_name||""} onChange={e=>setF({...f,sys_name:e.target.value})}/></Field>
+        <Field label="Timeout de sessão (horas)"><input className="input" type="number" min="1" max="168" value={f.sys_session_timeout||""} onChange={e=>setF({...f,sys_session_timeout:e.target.value})}/></Field>
+        <div style={{gridColumn:"1 / -1"}}><Field label="Mensagem de boas-vindas"><input className="input" value={f.sys_welcome||""} onChange={e=>setF({...f,sys_welcome:e.target.value})}/></Field></div>
+        <Field label="Perfil padrão (novos usuários)">
+          <select className="input" value={f.sys_default_role||"colaborador"} onChange={e=>setF({...f,sys_default_role:e.target.value})}>
+            <option value="colaborador">Colaborador</option><option value="gerente">Gerente</option><option value="visitante">Visitante</option>
+          </select>
+        </Field>
+        <Field label="Fuso horário">
+          <select className="input" value={f.sys_timezone||"America/Sao_Paulo"} onChange={e=>setF({...f,sys_timezone:e.target.value})}>
+            {["America/Sao_Paulo","America/Manaus","America/Belem","America/Fortaleza","America/Recife","America/Cuiaba","America/Porto_Velho","America/Boa_Vista","America/Rio_Branco"].map(tz=><option key={tz} value={tz}>{tz.replace("America/","").replace("_"," ")}</option>)}
+          </select>
+        </Field>
+        <Field label="CNPJ da empresa"><input className="input" value={f.sys_company_cnpj||""} onChange={e=>setF({...f,sys_company_cnpj:e.target.value})} placeholder="00.000.000/0001-00"/></Field>
+        <Field label="Limite de upload (MB)"><input className="input" type="number" min="1" max="100" value={f.sys_max_upload_mb||"10"} onChange={e=>setF({...f,sys_max_upload_mb:e.target.value})}/></Field>
+        <Field label="Tipos de arquivo permitidos"><input className="input" value={f.sys_allowed_types||""} onChange={e=>setF({...f,sys_allowed_types:e.target.value})} placeholder="pdf,mp4,docx,xlsx"/></Field>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:10,borderTop:"1.5px solid var(--ls)",paddingTop:14}}>
+        {[
+          ["sys_maintenance","Modo de Manutenção","Desabilita acesso para não-admins"],
+          ["sys_manual_approval","Aprovação manual de novos usuários","Novos cadastros precisam de aprovação do admin"],
+          ["sys_feed_moderation","Moderação do Feed","Posts precisam de aprovação antes de aparecer"],
+          ["sys_chat_enabled","Chat interno habilitado","Permite uso do chat entre colaboradores"],
+          ["sys_training_notif","Notificações de treinamento","Envia alertas de prazos de treinamentos obrigatórios"],
+          ["sys_feed_require_cat","Exigir categoria ao postar no Feed","Colaborador deve escolher uma categoria ao criar post"],
+        ].map(([k,l,h])=>(
+          <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",border:"1.5px solid var(--b2)",borderRadius:10}}>
+            <div><div style={{fontWeight:700,fontSize:13.5}}>{l}</div><div style={{fontSize:12,color:"var(--mu)",marginTop:2}}>{h}</div></div>
+            <label className="toggle"><input type="checkbox" checked={f[k]==="true"} onChange={e=>tog(k,e.target.checked)}/><span className="toggle-slider"/></label>
+          </div>
+        ))}
+      </div>
+      <div style={{marginTop:18,display:"flex",justifyContent:"flex-end"}}><button className="btn btn-primary" onClick={save} disabled={busy}>{busy?"Salvando…":"💾 Salvar Configurações"}</button></div>
+    </section>
+  );
+}
+
+
+/* ── Tab: Identidade ── */
+function TabEmpresa(){
+  const {cfg,reloadCfg,toast}=useApp();
+  const F=["companyName","brandName","slogan","welcomeMessage","about","logoUrl","logoInitials","foundingYear","primaryColor","accentColor","sidebarDark","supportEmail","supportPhone","website","address","whatsappNum","safeSpaceUrl","faviconUrl","loginBgUrl"];
+  const [f,setF]=useState({});const [busy,setBusy]=useState(false);
+  useEffect(()=>{if(!cfg)return;setF(Object.fromEntries(F.map(k=>[k,cfg[k]??""])));},[cfg]);
+  const save=async()=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:f});await reloadCfg();toast("Identidade atualizada");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800}}>Identidade visual da empresa</h3>
+      <p style={{fontSize:13,color:"var(--mu)",marginTop:4,marginBottom:18}}>Aparece no login, sidebar e dashboard.</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Field label="Nome da empresa"><input className="input" value={f.companyName||""} onChange={e=>setF({...f,companyName:e.target.value})}/></Field>
+        <Field label="Marca / Brand"><input className="input" value={f.brandName||""} onChange={e=>setF({...f,brandName:e.target.value})}/></Field>
+        <Field label="Slogan"><input className="input" value={f.slogan||""} onChange={e=>setF({...f,slogan:e.target.value})}/></Field>
+        <Field label="Ano de fundação"><input className="input" value={f.foundingYear||""} onChange={e=>setF({...f,foundingYear:e.target.value})}/></Field>
+        <div style={{gridColumn:"1 / -1"}}><Field label="Mensagem de boas-vindas (Dashboard)"><textarea className="input" value={f.welcomeMessage||""} onChange={e=>setF({...f,welcomeMessage:e.target.value})}/></Field></div>
+        <div style={{gridColumn:"1 / -1"}}><Field label="Sobre a empresa"><textarea className="input" value={f.about||""} onChange={e=>setF({...f,about:e.target.value})}/></Field></div>
+        <Field label="URL do logo"><input className="input" value={f.logoUrl||""} onChange={e=>setF({...f,logoUrl:e.target.value})}/></Field>
+        <Field label="Iniciais (fallback)"><input className="input" value={f.logoInitials||""} onChange={e=>setF({...f,logoInitials:e.target.value})}/></Field>
+        <div><label className="label">Cor primária</label><div style={{display:"flex",gap:8,alignItems:"center"}}><input type="color" value={f.primaryColor||"#1f4e2a"} onChange={e=>setF({...f,primaryColor:e.target.value})} style={{width:54,height:42,border:"1.5px solid var(--b2)",borderRadius:10,cursor:"pointer",padding:2}}/><input className="input" value={f.primaryColor||""} onChange={e=>setF({...f,primaryColor:e.target.value})}/></div></div>
+        <div><label className="label">Cor de destaque</label><div style={{display:"flex",gap:8,alignItems:"center"}}><input type="color" value={f.accentColor||"#c4842a"} onChange={e=>setF({...f,accentColor:e.target.value})} style={{width:54,height:42,border:"1.5px solid var(--b2)",borderRadius:10,cursor:"pointer",padding:2}}/><input className="input" value={f.accentColor||""} onChange={e=>setF({...f,accentColor:e.target.value})}/></div></div>
+        <Field label="Sidebar escura?"><select className="input" value={f.sidebarDark||"true"} onChange={e=>setF({...f,sidebarDark:e.target.value})}><option value="true">Sim (escura)</option><option value="false">Não (clara)</option></select></Field>
+        <Field label="E-mail de suporte"><input className="input" value={f.supportEmail||""} onChange={e=>setF({...f,supportEmail:e.target.value})}/></Field>
+        <Field label="Telefone"><input className="input" value={f.supportPhone||""} onChange={e=>setF({...f,supportPhone:e.target.value})}/></Field>
+        <Field label="Site"><input className="input" value={f.website||""} onChange={e=>setF({...f,website:e.target.value})}/></Field>
+        <Field label="WhatsApp (só números)"><input className="input" value={f.whatsappNum||""} onChange={e=>setF({...f,whatsappNum:e.target.value})}/></Field>
+        <Field label="Endereço"><input className="input" value={f.address||""} onChange={e=>setF({...f,address:e.target.value})}/></Field>
+        <Field label="URL Espaço Seguro"><input className="input" value={f.safeSpaceUrl||""} onChange={e=>setF({...f,safeSpaceUrl:e.target.value})}/></Field>
+        <Field label="URL Favicon personalizado"><input className="input" value={f.faviconUrl||""} onChange={e=>setF({...f,faviconUrl:e.target.value})} placeholder="https://..."/></Field>
+        <Field label="Imagem de fundo do Login (URL)"><input className="input" value={f.loginBgUrl||""} onChange={e=>setF({...f,loginBgUrl:e.target.value})} placeholder="https://..."/></Field>
+      </div>
+      <div style={{marginTop:18,display:"flex",justifyContent:"space-between",alignItems:"center"}}>{f.logoUrl&&<img src={f.logoUrl} alt="" style={{maxHeight:36}}/>}<button className="btn btn-primary" onClick={save} disabled={busy} style={{marginLeft:"auto"}}>{busy?"Salvando…":"Salvar identidade"}</button></div>
+    </section>
+  );
+}
+
+/* ── Tab: Permissões ── */
+function TabPermissoes(){
+  const {cfg,reloadCfg,toast}=useApp();
+  const PERMS=[
+    {group:"Feed",items:[
+      {k:"perm_feed_post",l:"Publicar no Feed",h:"Quem pode criar publicações."},
+      {k:"perm_feed_pin",l:"Fixar publicações",h:"Quem pode marcar post como fixado no topo."},
+      {k:"perm_feed_delete_any",l:"Excluir post de outros",h:"Quem pode remover publicações de outras pessoas."},
+    ]},
+    {group:"Calendário",items:[
+      {k:"perm_calendar_create",l:"Criar eventos",h:"Quem pode adicionar eventos no calendário."},
+      {k:"perm_calendar_delete",l:"Excluir evento de outros",h:"Quem pode remover eventos criados por outros."},
+    ]},
+    {group:"Treinamentos",items:[
+      {k:"perm_training_view",l:"Visualizar Treinamentos",h:"Quem pode acessar a aba de Treinamentos."},
+      {k:"perm_training_manage",l:"Gerenciar Treinamentos",h:"Quem pode criar pastas e adicionar conteúdos."},
+    ]},
+    {group:"Políticas",items:[
+      {k:"perm_policies_view",l:"Visualizar Políticas",h:"Quem pode acessar a aba de Políticas."},
+      {k:"perm_policies_manage",l:"Gerenciar Políticas",h:"Quem pode criar pastas e adicionar documentos."},
+    ]},
+    {group:"Pesquisas",items:[
+      {k:"perm_surveys_create",l:"Criar pesquisas",h:"Quem pode criar novas enquetes."},
+      {k:"perm_surveys_respond",l:"Responder pesquisas",h:"Quem pode responder pesquisas ativas."},
+    ]},
+    {group:"Reconhecimento",items:[
+      {k:"perm_recognition_send",l:"Enviar Kudos",h:"Quem pode reconhecer colegas."},
+      {k:"perm_recognition_like",l:"Curtir Kudos",h:"Quem pode dar like em reconhecimentos."},
+    ]},
+    {group:"Diretório & Analytics",items:[
+      {k:"perm_directory_view",l:"Ver Diretório",h:"Quem pode acessar a lista de colaboradores."},
+      {k:"perm_analytics_view",l:"Ver Analytics",h:"Quem pode acessar métricas e relatórios."},
+    ]},
+  ];
+  const allKeys=PERMS.flatMap(g=>g.items.map(i=>i.k));
+  const [f,setF]=useState({});const [busy,setBusy]=useState(false);
+  useEffect(()=>{if(!cfg)return;setF(Object.fromEntries(allKeys.map(k=>[k,cfg[k]||"todos"])))},[cfg]);
+  const save=async()=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:f});await reloadCfg();toast("Permissões atualizadas");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  const LV=[{v:"todos",l:"Todos",desc:"Qualquer usuário autenticado"},{v:"gerente",l:"Gerentes+",desc:"Gerentes e admins"},{v:"admin",l:"Só Admin",desc:"Apenas administradores"}];
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800}}>Permissões (15)</h3>
+      <p style={{fontSize:13,color:"var(--mu)",marginTop:4,marginBottom:18}}>
+        Defina quem pode fazer o quê na intranet. Alterações valem para toda a empresa imediatamente.
+      </p>
+      {PERMS.map(g=>(
+        <div key={g.group} style={{marginBottom:20}}>
+          <div style={{fontWeight:800,fontSize:12,color:"var(--mu)",textTransform:"uppercase",letterSpacing:.8,marginBottom:8,paddingBottom:6,borderBottom:"1.5px solid var(--ls)"}}>{g.group}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {g.items.map(item=>(
+              <div key={item.k} style={{display:"grid",gridTemplateColumns:"1fr auto",gap:14,alignItems:"center",padding:"12px 14px",border:"1.5px solid var(--b2)",borderRadius:10}}>
+                <div><div style={{fontWeight:700,fontSize:13.5}}>{item.l}</div><div style={{fontSize:12,color:"var(--mu)",marginTop:2}}>{item.h}</div></div>
+                <div style={{display:"flex",gap:5}}>{LV.map(l=>(
+                  <button key={l.v} onClick={()=>setF(x=>({...x,[item.k]:l.v}))} title={l.desc} className="btn btn-sm"
+                    style={{background:f[item.k]===l.v?"var(--p)":"#fff",color:f[item.k]===l.v?"#fff":"var(--ink)",border:"1.5px solid var(--b2)",whiteSpace:"nowrap"}}>
+                    {l.l}
+                  </button>
+                ))}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div style={{marginTop:18,display:"flex",justifyContent:"flex-end"}}><button className="btn btn-primary" onClick={save} disabled={busy}>{busy?"Salvando…":"Salvar permissões"}</button></div>
+    </section>
+  );
+}
+
+/* ── Tab: Listas ── */
+function TabListas(){
+  const {reloadCfg,toast,jobTitles,skillsSuggestions,costCenters}=useApp();
+  const [busy,setBusy]=useState(false);
+  const [jt,setJt]=useState(jobTitles);
+  const [sk,setSk]=useState(skillsSuggestions);
+  const [cc,setCc]=useState(costCenters);
+  const [newJt,setNewJt]=useState("");
+  const [newSk,setNewSk]=useState("");
+  const [newCcCode,setNewCcCode]=useState("");const [newCcLabel,setNewCcLabel]=useState("");
+  useEffect(()=>{setJt(jobTitles);setSk(skillsSuggestions);setCc(costCenters);},[jobTitles,skillsSuggestions,costCenters]);
+
+  const saveAll=async(patch)=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:patch});await reloadCfg();toast("Lista atualizada");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+
+  const addJt=()=>{if(!newJt.trim())return;const nl=[...jt,newJt.trim()];setJt(nl);setNewJt("");saveAll({jobTitles_json:JSON.stringify(nl)});};
+  const rmJt=i=>{const nl=jt.filter((_,j)=>j!==i);setJt(nl);saveAll({jobTitles_json:JSON.stringify(nl)});};
+  const addSk=()=>{if(!newSk.trim())return;const nl=[...sk,newSk.trim()];setSk(nl);setNewSk("");saveAll({skills_json:JSON.stringify(nl)});};
+  const rmSk=i=>{const nl=sk.filter((_,j)=>j!==i);setSk(nl);saveAll({skills_json:JSON.stringify(nl)});};
+  const addCc=()=>{if(!newCcLabel.trim())return;const nl=[...cc,{code:newCcCode.trim()||String(cc.length+100),label:newCcLabel.trim()}];setCc(nl);setNewCcCode("");setNewCcLabel("");saveAll({costCenters_json:JSON.stringify(nl)});};
+  const rmCc=i=>{const nl=cc.filter((_,j)=>j!==i);setCc(nl);saveAll({costCenters_json:JSON.stringify(nl)});};
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      <section className="card" style={{padding:24}}>
+        <h3 style={{fontSize:15,fontWeight:800,marginBottom:4}}>Títulos de Cargo</h3>
+        <p style={{fontSize:13,color:"var(--mu)",marginBottom:14}}>Títulos formais exibidos no cadastro de usuário.</p>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+          {jt.map((t,i)=><span key={i} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:8,background:"var(--b4)",border:"1.5px solid var(--b2)",fontSize:12.5,fontWeight:600}}>{t}<button onClick={()=>rmJt(i)} style={{background:"none",border:"none",color:"var(--danger)",cursor:"pointer",fontSize:13,lineHeight:1}}>✕</button></span>)}
+        </div>
+        <div style={{display:"flex",gap:8}}><input className="input" value={newJt} onChange={e=>setNewJt(e.target.value)} placeholder="Novo título de cargo…" onKeyDown={e=>e.key==="Enter"&&addJt()}/><button className="btn btn-primary btn-sm" onClick={addJt} disabled={busy}>Adicionar</button></div>
+      </section>
+      <section className="card" style={{padding:24}}>
+        <h3 style={{fontSize:15,fontWeight:800,marginBottom:4}}>Competências Sugeridas</h3>
+        <p style={{fontSize:13,color:"var(--mu)",marginBottom:14}}>Lista de sugestões no campo de competências do usuário.</p>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+          {sk.map((t,i)=><span key={i} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:8,background:"var(--b4)",border:"1.5px solid var(--b2)",fontSize:12.5,fontWeight:600}}>{t}<button onClick={()=>rmSk(i)} style={{background:"none",border:"none",color:"var(--danger)",cursor:"pointer",fontSize:13,lineHeight:1}}>✕</button></span>)}
+        </div>
+        <div style={{display:"flex",gap:8}}><input className="input" value={newSk} onChange={e=>setNewSk(e.target.value)} placeholder="Nova competência…" onKeyDown={e=>e.key==="Enter"&&addSk()}/><button className="btn btn-primary btn-sm" onClick={addSk} disabled={busy}>Adicionar</button></div>
+      </section>
+      <section className="card" style={{padding:24}}>
+        <h3 style={{fontSize:15,fontWeight:800,marginBottom:4}}>Centros de Custo</h3>
+        <p style={{fontSize:13,color:"var(--mu)",marginBottom:14}}>Para categorização e futuros relatórios.</p>
+        <div className="card" style={{overflow:"hidden",marginBottom:12}}>
+          <table className="t"><thead><tr><th>Código</th><th>Descrição</th><th style={{textAlign:"right"}}>Ação</th></tr></thead><tbody>
+            {cc.map((c,i)=><tr key={i}><td className="num">{c.code||i+1}</td><td>{c.label}</td><td style={{textAlign:"right"}}><button onClick={()=>rmCc(i)} className="btn btn-danger btn-sm">🗑</button></td></tr>)}
+          </tbody></table>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <input className="input" style={{width:90}} value={newCcCode} onChange={e=>setNewCcCode(e.target.value)} placeholder="Cód."/>
+          <input className="input" value={newCcLabel} onChange={e=>setNewCcLabel(e.target.value)} placeholder="Descrição do centro de custo…" onKeyDown={e=>e.key==="Enter"&&addCc()}/>
+          <button className="btn btn-primary btn-sm" onClick={addCc} disabled={busy}>Adicionar</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* ── Tab: Reconhecimento ── */
+function TabReconhecimento(){
+  const {cfg,reloadCfg,toast}=useApp();
+  const KEYS=["recognition_daily_limit","recognition_cooldown_h"];
+  const [f,setF]=useState({recognition_daily_limit:"3",recognition_cooldown_h:"0"});const [busy,setBusy]=useState(false);
+  useEffect(()=>{if(!cfg)return;setF(Object.fromEntries(KEYS.map(k=>[k,cfg[k]??""])))},[cfg]);
+  const save=async()=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:f});await reloadCfg();toast("Configurações salvas");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800}}>Configurações de Reconhecimento</h3>
+      <p style={{fontSize:13,color:"var(--mu)",marginTop:4,marginBottom:18}}>Controles de volume e frequência dos Kudos.</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Field label="Limite diário de Kudos por usuário">
+          <input className="input" type="number" min="0" max="50" value={f.recognition_daily_limit||"3"} onChange={e=>setF({...f,recognition_daily_limit:e.target.value})}/>
+          <div style={{fontSize:11,color:"var(--mu)",marginTop:4}}>0 = sem limite</div>
+        </Field>
+        <Field label="Cooldown entre Kudos para o mesmo destinatário (horas)">
+          <input className="input" type="number" min="0" max="168" value={f.recognition_cooldown_h||"0"} onChange={e=>setF({...f,recognition_cooldown_h:e.target.value})}/>
+          <div style={{fontSize:11,color:"var(--mu)",marginTop:4}}>0 = sem cooldown</div>
+        </Field>
+      </div>
+      <div style={{marginTop:18,display:"flex",justifyContent:"flex-end"}}><button className="btn btn-primary" onClick={save} disabled={busy}>{busy?"Salvando…":"Salvar"}</button></div>
+    </section>
+  );
+}
+
+
+/* ── Tab: Integrações ── */
+function TabIntegracoes(){
+  const {cfg,reloadCfg,toast}=useApp();
+  const [f,setF]=useState({powerBiUrl:""});const [busy,setBusy]=useState(false);
+  useEffect(()=>{if(cfg)setF({powerBiUrl:cfg.powerBiUrl||""});},[cfg]);
+  const save=async()=>{setBusy(true);try{await api("/api/config",{method:"PUT",body:f});await reloadCfg();toast("Integrações salvas");}catch(e){toast(e.message,"error");}finally{setBusy(false);}};
+  return(
+    <section className="card" style={{padding:24}}>
+      <h3 style={{fontSize:16,fontWeight:800}}>Integrações</h3>
+      <p style={{fontSize:13,color:"var(--mu)",marginTop:4,marginBottom:18}}>Conecte serviços externos.</p>
+      <Field label="Power BI — URL embed"><input className="input" value={f.powerBiUrl} onChange={e=>setF({...f,powerBiUrl:e.target.value})} placeholder="https://app.powerbi.com/view?r=..."/></Field>
+      <div style={{fontSize:11.5,color:"var(--mu)",marginTop:6}}>Cole a URL pública do dashboard ("Arquivo → Publicar na web" no Power BI).</div>
+      <div style={{marginTop:18,display:"flex",justifyContent:"flex-end"}}><button className="btn btn-primary" onClick={save} disabled={busy}>{busy?"Salvando…":"Salvar integrações"}</button></div>
+    </section>
+  );
+}
+
+/* ── App root ── */
+function App(){return<AppProvider><Gate/></AppProvider>;}
+function Gate(){const{user,boot}=useApp();if(boot)return<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bone)"}}><Spin label="Carregando TITANO Intranet…"/></div>;return user?<Shell/>:<Login/>;}
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
