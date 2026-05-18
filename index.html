@@ -313,7 +313,7 @@ function Shell(){
 }
 
 function PageRouter({page,go}){
-  const {isAdmin,isMgr}=useApp();
+  const {isAdmin,isMgr,can}=useApp();
   switch(page){
     case"dashboard":return<Dashboard go={go}/>;
     case"feed":return<Feed/>;
@@ -629,7 +629,7 @@ function Directory(){
                 {(u.tempo_empresa||u.admission_fmt)&&<span style={{color:"var(--mu)"}}>📅 {u.tempo_empresa||"—"} de empresa</span>}
                 {(u.birth_date_fmt||u.birthDate)&&<span style={{color:"var(--mu)"}}>🎂 {(u.birth_date_fmt||"").slice(0,5)||fmtD(u.birthDate,{day:"2-digit",month:"2-digit"})}</span>}
               </div>
-              {u.skills&&u.skills.length>0&&<div style={{marginTop:10,display:"flex",gap:4,flexWrap:"wrap"}}>{u.skills.slice(0,4).map(s=><span key={s} className="chip">{s}</span>)}</div>}
+              {sk.length>0&&<div style={{marginTop:10,display:"flex",gap:4,flexWrap:"wrap"}}>{sk.slice(0,4).map(s=><span key={s} className="chip">{s}</span>)}</div>}
             </article>
           ))}
         </div>
@@ -640,6 +640,11 @@ function Directory(){
 }
 
 function ProfModal({user:u,onClose}){
+  const {data:allUsers}=useRes(()=>api("/api/users").catch(()=>[]));
+  const list=Array.isArray(allUsers)?allUsers:[];
+  const manager=u.manager||(u.managerId?list.find(x=>x.id===u.managerId):null);
+  const reports=(u.reports&&u.reports.length>0)?u.reports:list.filter(x=>x.managerId===u.id);
+  const sk=u.skills||[];
   return <Modal open onClose={onClose} title="Perfil" wide>
     <div style={{display:"flex",gap:20,alignItems:"flex-start",marginBottom:20}}>
       <Av name={u.name} url={u.avatar} size={80}/>
@@ -654,12 +659,12 @@ function ProfModal({user:u,onClose}){
       </div>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-      {[["🏢 Departamento",u.dept],["📍 Filial",u.branch],["✉ E-mail",u.email],["📱 Telefone",u.phone],["📅 Admissão",u.admission_fmt||fmtD(u.admission)],["⏱ Tempo de empresa",u.tempo_empresa||"—"],["🎂 Aniversário",(u.birth_date_fmt||"").slice(0,5)||fmtD(u.birthDate,{day:"2-digit",month:"2-digit"})||"—"],["👤 Gestor",u.manager?.name||"—"]].map(([l,v])=>(
+      {[["🏢 Departamento",u.dept],["📍 Filial",u.branch],["✉ E-mail",u.email],["📱 Telefone",u.phone],["📅 Admissão",u.admission_fmt||fmtD(u.admission)],["⏱ Tempo de empresa",u.tempo_empresa||"—"],["🎂 Aniversário",(u.birth_date_fmt||"").slice(0,5)||fmtD(u.birthDate,{day:"2-digit",month:"2-digit"})||"—"],["👤 Gestor",manager?.name||"—"]].map(([l,v])=>(
         <div key={l} className="card" style={{padding:12}}><div style={{fontSize:10.5,color:"var(--mu)",fontWeight:800,textTransform:"uppercase",letterSpacing:.8}}>{l}</div><div style={{fontSize:14,fontWeight:600,marginTop:4}}>{v||"—"}</div></div>
       ))}
     </div>
-    {u.skills&&u.skills.length>0&&<div style={{marginTop:14}}><div className="label">Competências</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>{u.skills.map(s=><span key={s} className="chip">{s}</span>)}</div></div>}
-    {u.reports&&u.reports.length>0&&<div style={{marginTop:14}}><div className="label">Equipe ({u.reports.length})</div><div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:6}}>{u.reports.map(r=><div key={r.id} style={{display:"flex",alignItems:"center",gap:6}}><Av name={r.name} url={r.avatar} size={28}/><span style={{fontSize:13}}>{r.name}</span></div>)}</div></div>}
+    {sk.length>0&&<div style={{marginTop:14}}><div className="label">Competências</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>{u.skills.map(s=><span key={s} className="chip">{s}</span>)}</div></div>}
+    {reports.length>0&&<div style={{marginTop:14}}><div className="label">Equipe ({u.reports.length})</div><div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:6}}>{reports.map(r=><div key={r.id} style={{display:"flex",alignItems:"center",gap:6}}><Av name={r.name} url={r.avatar} size={28}/><span style={{fontSize:13}}>{r.name}</span></div>)}</div></div>}
   </Modal>;
 }
 
@@ -733,7 +738,7 @@ function CalendarPage(){
 /* ── Recognition ── */
 const BDGS=[{id:"star",e:"⭐",label:"Estrela",c:"#d97706"},{id:"heart",e:"❤️",label:"Coração",c:"#dc2626"},{id:"rocket",e:"🚀",label:"Foguete",c:"#2563eb"},{id:"shield",e:"🛡",label:"Escudo",c:"#0891b2"},{id:"leaf",e:"🌿",label:"Folha",c:"#16a34a"},{id:"trophy",e:"🏆",label:"Troféu",c:"#7c3aed"}];
 function Recognition(){
-  const {user,can,toast}=useApp();const canS=can("recognition_send");
+  const {user,isAdmin,can,toast}=useApp();const canS=can("recognition_send");
   const kR=useRes(()=>api("/api/recognition").catch(()=>[]));
   const uR=useRes(()=>api("/api/users").catch(()=>[]));
   const kudos=Array.isArray(kR.data)?kR.data:[];const users=Array.isArray(uR.data)?uR.data:[];
@@ -758,7 +763,7 @@ function Recognition(){
                 <div style={{flex:1,minWidth:0}}><div style={{fontSize:11,color:"var(--mu)"}}>para</div><div style={{fontWeight:800,fontSize:13.5}} className="truncate">{k.to?.name}</div></div>
                 {can("recognition_like")&&<button onClick={()=>like(k)} className="btn btn-sm btn-ghost" style={{color:k.liked?"var(--danger)":"var(--mu)"}}>{k.liked?"❤️":"🤍"} <span className="num">{k.likesCount??0}</span></button>}
               </div>
-              <div style={{fontSize:10.5,color:"var(--m2)",marginTop:8,display:"flex",justifyContent:"space-between"}}><span>de {k.from?.name}</span><span className="num">{fmtDT(k.createdAt)}</span></div>
+              <div style={{fontSize:10.5,color:"var(--m2)",marginTop:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span>de {k.from?.name}</span><div style={{display:"flex",alignItems:"center",gap:8}}><span className="num">{fmtDT(k.createdAt)}</span>{(isAdmin||k.fromId===user?.id)&&<button onClick={async()=>{if(!confirm("Excluir?"))return;try{await api(`/api/recognition/${k.id}`,{method:"DELETE"});toast("Removido");kR.reload();}catch(e){toast(e.message,"error");}}} style={{background:"none",border:"none",color:"var(--danger)",cursor:"pointer",fontSize:14,lineHeight:1}}>🗑</button>}</div></div>
             </article>
           );})}
         </div>
