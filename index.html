@@ -916,7 +916,7 @@ const PERMS_KEYS=[
 ];
 
 function Users(){
-  const {toast,departments,branches,customRoles}=useApp();
+  const {toast,departments,branches,customRoles,jobTitles}=useApp();
   const {data,loading,error,reload}=useRes(()=>api("/api/users").catch(()=>[]));
   const list=Array.isArray(data)?data:[];
   const [q,setQ]=useState("");const [editing,setEditing]=useState(null);const [profView,setProfView]=useState(null);
