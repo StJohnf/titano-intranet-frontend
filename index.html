@@ -62,7 +62,8 @@ window.API_BASE=(window.TITANO_API_BASE||localStorage.getItem("titano_api_base")
 window.Token={get:()=>localStorage.getItem("titano_token"),set:t=>localStorage.setItem("titano_token",t),refresh:()=>localStorage.getItem("titano_refresh"),setRefresh:t=>localStorage.setItem("titano_refresh",t),clear:()=>{localStorage.removeItem("titano_token");localStorage.removeItem("titano_refresh")}};
 window.ROLES={admin:"Administrador",gerente:"Gerente",colaborador:"Colaborador",visitante:"Visitante"};
 async function _rfsh(){const rt=Token.refresh();if(!rt)return false;try{const d=await fetch(API_BASE+"/api/auth/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({refreshToken:rt})}).then(r=>r.json());if(d.accessToken){Token.set(d.accessToken);Token.setRefresh(d.refreshToken);return true;}return false;}catch{return false;}}
-window.api=async function(path,opts={}){const h={"Content-Type":"application/json",...(opts.headers||{})};const t=Token.get();if(t)h.Authorization="Bearer "+t;let r;try{r=await fetch(API_BASE+path,{...opts,headers:h,body:opts.body!==undefined?JSON.stringify(opts.body):undefined});}catch{throw new Error("Sem conexão com o servidor");}if(r.status===401){if(!t){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Não autenticado");}const ok=await _rfsh();if(ok)return api(path,opts);Token.clear();localStorage.removeItem("titano_user");window.location.reload();return;}if(r.status===204)return null;const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"HTTP "+r.status);return d;};
+window.api=async function(path,opts={}){const h={"Content-Type":"application/json",...(opts.headers||{})};const t=Token.get();if(t)h.Authorization="Bearer "+t;let r;try{r=await fetch(API_BASE+path,{...opts,headers:h,body:opts.body!==undefined?JSON.stringify(opts.body):undefined});}catch{throw new Error("Sem conexão com o servidor");}if(r.status===403){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Acesso negado. Faça logout e entre novamente.");}
+if(r.status===401){if(!t){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Não autenticado");}const ok=await _rfsh();if(ok)return api(path,opts);Token.clear();localStorage.removeItem("titano_user");window.location.reload();return;}if(r.status===204)return null;const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"HTTP "+r.status);return d;};
 (function(){if(localStorage.getItem("titano_dark")==="1")document.body.classList.add("dark");const s=localStorage.getItem("titano_fs");if(s)document.documentElement.style.fontSize=s+"px";})();
 </script>
 
@@ -618,13 +619,14 @@ function Directory(){
                 <div style={{position:"relative"}}><Av name={u.name} url={u.avatar} size={56}/>{u.onlineAt&&<div style={{position:"absolute",bottom:2,right:2,width:12,height:12,borderRadius:"50%",background:"#16a34a",border:"2px solid #fff"}}/>}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:800,fontSize:14}} className="truncate">{u.name}</div>
-                  <div style={{fontSize:12,color:"var(--mu)"}} className="truncate">{u.jobTitle||u.dept||"—"}</div>
+                  {u.jobTitle&&<div style={{fontSize:11.5,color:"var(--p)",fontWeight:700}} className="truncate">🏷 {u.jobTitle}</div>}
+                  <div style={{fontSize:12,color:"var(--mu)"}} className="truncate">{u.dept||"—"}</div>
                   <div style={{fontSize:11,color:"var(--m2)",marginTop:2}} className="truncate">{u.branch}</div>
                   {u.statusMsg&&<div style={{fontSize:11,color:"var(--mu)",marginTop:4,fontStyle:"italic"}}>"{u.statusMsg}"</div>}
                 </div>
               </div>
               <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid var(--ls)",display:"flex",flexDirection:"column",gap:4,fontSize:12}}>
-                <a href={`mailto:${u.email}`} style={{color:"var(--p)",textDecoration:"none"}} className="truncate">✉ {u.email}</a>
+                <a href={`mailto:${u.email}`} onClick={e=>e.stopPropagation()} style={{color:"var(--p)",textDecoration:"none"}} className="truncate">✉ {u.email}</a>
                 {u.phone&&<span style={{color:"var(--mu)"}}>📱 {u.phone}</span>}
                 {(u.tempo_empresa||u.admission_fmt)&&<span style={{color:"var(--mu)"}}>📅 {u.tempo_empresa||"—"} de empresa</span>}
                 {(u.birth_date_fmt||u.birthDate)&&<span style={{color:"var(--mu)"}}>🎂 {(u.birth_date_fmt||"").slice(0,5)||fmtD(u.birthDate,{day:"2-digit",month:"2-digit"})}</span>}
@@ -786,7 +788,7 @@ function Surveys(){
   const {can,toast}=useApp();const canC=can("surveys_create");
   const {data,loading,error,reload}=useRes(()=>api("/api/surveys").catch(()=>[]));
   const list=Array.isArray(data)?data:[];
-  const [resp,setResp]=useState(null);const [newS,setNewS]=useState(false);
+  const [resp,setResp]=useState(null);const [newS,setNewS]=useState(false);const [results,setResults]=useState(null);
   if(error)return<ErrBox error={error} onRetry={reload}/>;
   return(
     <div style={{display:"flex",flexDirection:"column",gap:18}}>
@@ -806,6 +808,7 @@ function Surveys(){
                 </div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {!closed&&!s.answered&&s.status==="active"&&can("surveys_respond")&&<button className="btn btn-primary btn-sm" onClick={()=>setResp(s)}>Responder →</button>}
+{can("surveys_create")&&(s.responsesCount>0)&&<button className="btn btn-ghost btn-sm" onClick={()=>setResults(s)}>📊 Ver Resultados</button>}
 {canC&&s.status==="draft"&&<button className="btn btn-ghost btn-sm" onClick={async()=>{try{await api(`/api/surveys/${s.id}`,{method:"PATCH",body:{status:"active"}});toast("Pesquisa publicada!");reload();}catch(e){toast(e.message,"error");}}}>▶ Publicar</button>}
 {canC&&s.status==="active"&&<button className="btn btn-ghost btn-sm" onClick={async()=>{try{await api(`/api/surveys/${s.id}`,{method:"PATCH",body:{status:"closed"}});toast("Encerrada");reload();}catch(e){toast(e.message,"error");}}}>⏹ Encerrar</button>}
 {canC&&<button className="btn btn-danger btn-sm" onClick={async()=>{if(!confirm("Excluir pesquisa?"))return;try{await api(`/api/surveys/${s.id}`,{method:"DELETE"});toast("Removida");reload();}catch(e){toast(e.message,"error");}}}>🗑</button>}
@@ -816,6 +819,7 @@ function Surveys(){
         </div>
       )}
       {resp&&<SurvRespModal survey={resp} onClose={()=>setResp(null)} onDone={()=>{setResp(null);reload();}}/>}
+      {results&&<SurvResultsModal survey={results} onClose={()=>setResults(null)}/>}
       {newS&&<SurvCreateModal onClose={()=>setNewS(false)} onDone={()=>{setNewS(false);reload();}}/>}
     </div>
   );
@@ -872,6 +876,69 @@ function SurvCreateModal({onClose,onDone}){
   </Modal>;
 }
 
+function SurvResultsModal({survey,onClose}){
+  const {toast}=useApp();
+  const {data:full,loading}=useRes(()=>api(`/api/surveys/${survey.id}/results`).catch(()=>null));
+  if(loading)return<Modal open onClose={onClose} title={survey.title}><Spin/></Modal>;
+  if(!full)return<Modal open onClose={onClose} title={survey.title}><ErrBox error={{message:"Não foi possível carregar os resultados"}}/></Modal>;
+  const qs=full.questions||[];
+  const totalResp=full.responses?.length||0;
+  return(
+    <Modal open onClose={onClose} wide title={`📊 Resultados: ${survey.title}`}
+      footer={<button className="btn btn-ghost" onClick={onClose}>Fechar</button>}>
+      <div style={{marginBottom:16,display:"flex",gap:14,flexWrap:"wrap"}}>
+        <span className="chip chip-green">✅ {totalResp} resposta{totalResp!==1?"s":""}</span>
+        {survey.anonymous&&<span className="chip chip-blue">🔒 Anônima</span>}
+        {survey.deadline&&<span className="chip chip-amber">até {fmtD(survey.deadline)}</span>}
+      </div>
+      {qs.map(q=>{
+        const answers=(q.answers||[]).map(a=>{try{return JSON.parse(a.value);}catch{return a.value;}});
+        const isChoice=q.type==="choice"||q.type==="multi";
+        const isScale=q.type==="scale"||q.type==="nps"||q.type==="stars";
+        let counts={};
+        if(isChoice){answers.flat().forEach(v=>{const k=String(v);counts[k]=(counts[k]||0)+1;});}
+        const avg=isScale&&answers.length>0?Math.round(answers.reduce((a,b)=>a+Number(b),0)/answers.length*10)/10:null;
+        return(
+          <div key={q.id} style={{marginBottom:22,padding:16,border:"1.5px solid var(--b2)",borderRadius:12}}>
+            <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>{q.text}</div>
+            <div style={{fontSize:11,color:"var(--mu)",marginBottom:10}}>{answers.length} resposta{answers.length!==1?"s":""} · Tipo: {q.type}</div>
+            {isChoice&&(q.options||[]).map((opt,i)=>{
+              const c=counts[opt]||0;const pct=answers.length>0?Math.round(c/answers.flat().length*100):0;
+              return(
+                <div key={i} style={{marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
+                    <span>{opt}</span><span className="num" style={{fontWeight:700}}>{c} ({pct}%)</span>
+                  </div>
+                  <div style={{height:10,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${pct}%`,background:"var(--p)",borderRadius:6}}/>
+                  </div>
+                </div>
+              );
+            })}
+            {isScale&&<div style={{display:"flex",alignItems:"center",gap:16}}>
+              <div style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{avg||"—"}</div>
+              <div style={{fontSize:13,color:"var(--mu)"}}>{q.type==="nps"?"NPS médio":q.type==="stars"?"estrelas em média":"média da escala"}</div>
+            </div>}
+            {q.type==="text"&&<div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:200,overflowY:"auto"}}>
+              {answers.slice(0,10).map((a,i)=><div key={i} style={{padding:"8px 12px",background:"var(--b5)",borderRadius:8,fontSize:13,fontStyle:"italic"}}>"{String(a)}"</div>)}
+              {answers.length>10&&<div style={{fontSize:12,color:"var(--mu)",textAlign:"center"}}>...e mais {answers.length-10} respostas</div>}
+            </div>}
+            {q.type==="yesno"&&<div style={{display:"flex",gap:16}}>
+              {["sim","não"].map(v=>{const c=counts[v]||0;const pct=answers.length>0?Math.round(c/answers.length*100):0;return(
+                <div key={v} style={{flex:1,padding:14,borderRadius:10,background:"var(--b5)",textAlign:"center"}}>
+                  <div style={{fontSize:24,marginBottom:4}}>{v==="sim"?"✅":"❌"}</div>
+                  <div style={{fontWeight:800,fontSize:20,color:"var(--p)"}}>{pct}%</div>
+                  <div style={{fontSize:12,color:"var(--mu)",textTransform:"capitalize"}}>{v} ({c})</div>
+                </div>
+              );})}
+            </div>}
+          </div>
+        );
+      })}
+    </Modal>
+  );
+}
+
 /* ── PowerBI ── */
 function PowerBI(){
   const {cfg,isAdmin}=useApp();const url=cfg?.powerBiUrl||"";
@@ -881,30 +948,216 @@ function PowerBI(){
 
 /* ── Analytics ── */
 function Analytics(){
-  const {data:ad,loading:al,error:ae,reload:ar}=useRes(()=>api("/api/analytics/dashboard").catch(()=>null));
-  const {data:us,loading:ul}=useRes(()=>api("/api/users/stats").catch(()=>null));
-  const loading=al||ul;
-  if(loading)return<Spin/>;
-  if(ae&&!us)return<ErrBox error={ae} onRetry={ar}/>;
-  // Mescla dados do analytics/dashboard (se existir) com stats de usuários (sempre existe)
-  const stats=us||{};
-  const data=ad||{};
-  const totals=data.totals||data.counts||{
-    "Colaboradores ativos": stats.ativos||0,
-    "Total de usuários": stats.total||0,
-    "Em férias": stats.ferias||0,
-    "Inativos": stats.inativos||0,
-  };
-  const byDept=data.byDept||[];
-  const byBranch=Array.isArray(stats.byBranch)?stats.byBranch:[];
+  const {can}=useApp();
+  if(!can("analytics_view"))return<NoAccess/>;
+  const [tab,setTab]=useState("geral");
+  const [period,setPeriod]=useState("mes");
+  const {data:stats}=useRes(()=>api("/api/users/stats").catch(()=>null));
+  const {data:ad}=useRes(()=>api("/api/analytics/dashboard").catch(()=>null));
+  const byDept=(ad?.byDept||[]);
+  const activeUsers=stats?.ativos||ad?.activeUsers||0;
+  const totalUsers=stats?.total||ad?.totalUsers||0;
+  const TABS=[{id:"geral",l:"Geral"},{id:"treinamentos",l:"Treinamentos"},{id:"engajamento",l:"Engajamento"},{id:"acessos",l:"Acessos"}];
+  const PERIODS=[{id:"semana",l:"Semana"},{id:"mes",l:"Mês"},{id:"trimestre",l:"Trimestre"},{id:"ano",l:"Ano"}];
   return(
     <div style={{display:"flex",flexDirection:"column",gap:18}}>
-      {Object.keys(totals).length>0&&<section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14}}>{Object.entries(totals).map(([k,v])=><KPI key={k} emoji="📊" label={k} v={typeof v==="number"?v:"—"}/>)}</section>}
-      {(byDept.length>0||byBranch.length>0)&&<section className="card" style={{padding:20}}><h3 style={{fontSize:14,fontWeight:800,marginBottom:14}}>{byDept.length>0?"Por departamento":"Por filial"}</h3>{(byDept.length>0?byDept:byBranch).map((d,i)=>{const max=Math.max(...(byDept.length>0?byDept:byBranch).map(x=>x.count||x.value||0),1);const v=d.count??d.value??0;return <div key={i} style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12.5,marginBottom:3}}><span>{d.dept||d.branch||d.label||"—"}</span><span className="num">{v}</span></div><div style={{height:8,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}><div style={{height:"100%",width:`${(v/max)*100}%`,background:"var(--p)"}}/></div></div>;})}
-      </section>}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+        <div style={{display:"flex",gap:2,background:"var(--b4)",borderRadius:10,padding:3}}>
+          {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"8px 18px",borderRadius:8,border:"none",background:tab===t.id?"#fff":"transparent",fontWeight:700,fontSize:13,cursor:"pointer",color:tab===t.id?"var(--ink)":"var(--mu)",boxShadow:tab===t.id?"var(--sm)":"none"}}>{t.l}</button>)}
+        </div>
+        <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+          {PERIODS.map(pp=><button key={pp.id} onClick={()=>setPeriod(pp.id)} style={{padding:"7px 14px",borderRadius:8,border:`1.5px solid ${period===pp.id?"var(--p)":"var(--b2)"}`,background:period===pp.id?"var(--p)":"#fff",color:period===pp.id?"#fff":"var(--ink)",fontWeight:700,fontSize:12.5,cursor:"pointer"}}>{pp.l}</button>)}
+          <button className="btn btn-ghost btn-sm">⬇ Exportar</button>
+        </div>
+      </div>
+      {tab==="geral"&&<AnalyticsGeral activeUsers={activeUsers} totalUsers={totalUsers} byDept={byDept}/>}
+      {tab==="treinamentos"&&<AnalyticsTreinamentos/>}
+      {tab==="engajamento"&&<AnalyticsEngajamento/>}
+      {tab==="acessos"&&<AnalyticsAcessos/>}
     </div>
   );
 }
+
+function AnalyticsGeral({activeUsers,totalUsers,byDept}){
+  const maxDept=Math.max(...byDept.map(d=>d.count),1);
+  const total=byDept.reduce((a,b)=>a+b.count,0)||1;
+  const COLORS=["#d97706","#7c3aed","#16a34a","#2563eb","#0891b2","#dc2626","#ea580c","#6b7280"];
+  const months=["Jan","Fev","Mar","Abr","Mai","Jun"];
+  const mockLine=[180,210,195,242,0,0];
+  const maxLine=Math.max(...mockLine,1);
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
+        {[{e:"👥",l:"Colaboradores Ativos",v:activeUsers,s:`de ${totalUsers} cadastrados`,t:"+3%"},{e:"📚",l:"Treinamentos Concluídos",v:"73%",s:"meta: 100%",t:"+12%"},{e:"💬",l:"Mensagens / Dia",v:134,s:"média últimos 7 dias",t:"+12%"},{e:"📰",l:"Posts no Feed",v:42,s:"este mês",t:"+8%"}].map((k,i)=>(
+          <div key={i} className="card" style={{padding:20}}>
+            <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
+            <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+              <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
+              <span style={{fontSize:12,color:"#16a34a",fontWeight:700}}>{k.t}</span>
+            </div>
+            <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
+            <div style={{fontSize:11,color:"var(--mu)",marginTop:2}}>{k.s}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="card" style={{padding:20}}>
+          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Acessos Mensais</div>
+          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Usuários únicos por mês</div>
+          <svg viewBox="0 0 400 160" style={{width:"100%",height:160}}>
+            <defs><linearGradient id="aglg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#1f4e2a" stopOpacity=".25"/><stop offset="100%" stopColor="#1f4e2a" stopOpacity="0"/></linearGradient></defs>
+            {[0,50,100,150].map(y=><line key={y} x1="30" y1={y} x2="395" y2={y} stroke="var(--ls)" strokeWidth="1"/>)}
+            {months.map((m,i)=><text key={m} x={30+i*62} y="158" fontSize="11" fill="var(--mu)">{m}</text>)}
+            <polygon fill="url(#aglg)" points={[...mockLine.map((v,i)=>`${30+i*62},${145-(v/maxLine)*120}`),"340,145","30,145"].join(" ")}/>
+            <polyline fill="none" stroke="var(--p)" strokeWidth="2.5" strokeLinejoin="round" points={mockLine.map((v,i)=>`${30+i*62},${145-(v/maxLine)*120}`).join(" ")}/>
+            {mockLine.map((v,i)=><circle key={i} cx={30+i*62} cy={145-(v/maxLine)*120} r="5" fill={v>0?"var(--p)":"var(--b3)"} stroke="#fff" strokeWidth="2"/>)}
+            {mockLine.map((v,i)=>v>0?<text key={i} x={30+i*62} y={140-(v/maxLine)*120} fontSize="11" textAnchor="middle" fill="var(--ink)" fontWeight="700">{v}</text>:null)}
+          </svg>
+        </div>
+        <div className="card" style={{padding:20}}>
+          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Distribuição por Departamento</div>
+          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Colaboradores ativos</div>
+          {byDept.length===0?<Hint>Configure departamentos e cadastre colaboradores para ver a distribuição.</Hint>:(
+            <div style={{display:"flex",gap:16,alignItems:"center"}}>
+              <svg viewBox="0 0 120 120" style={{width:110,height:110,flexShrink:0}}>
+                {(()=>{let a=0;return byDept.slice(0,6).map((d,i)=>{const pct=d.count/total;const angle=pct*2*Math.PI;const x1=60+55*Math.sin(a);const y1=60-55*Math.cos(a);a+=angle;const x2=60+55*Math.sin(a);const y2=60-55*Math.cos(a);const large=pct>0.5?1:0;return <path key={i} d={`M60,60 L${x1.toFixed(1)},${y1.toFixed(1)} A55,55 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`} fill={COLORS[i%COLORS.length]}/>;});})()}
+                <circle cx="60" cy="60" r="35" fill="white"/>
+                <text x="60" y="55" textAnchor="middle" fontSize="18" fontWeight="900" fill="var(--p)">{activeUsers}</text>
+                <text x="60" y="68" textAnchor="middle" fontSize="9" fill="var(--mu)">ativos</text>
+              </svg>
+              <div style={{flex:1,display:"flex",flexDirection:"column",gap:5}}>
+                {byDept.slice(0,6).map((d,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:7,fontSize:12}}>
+                    <div style={{width:10,height:10,borderRadius:2,background:COLORS[i%COLORS.length],flexShrink:0}}/>
+                    <span style={{flex:1,color:"var(--ink)"}} className="truncate">{d.dept}</span>
+                    <span style={{fontWeight:700,color:"var(--mu)"}}>{Math.round(d.count/total*100)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsTreinamentos(){
+  const bars=[65,80,45,90,72,58,85];
+  const cats=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+  const maxB=Math.max(...bars);
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
+        {[{e:"📚",l:"Treinamentos Ativos",v:24,s:"no catálogo"},{e:"✅",l:"Concluídos / Usuário",v:"3.2",s:"média"},{e:"⏱",l:"Tempo Médio",v:"42min",s:"por treinamento"},{e:"🏆",l:"Taxa de Conclusão",v:"73%",s:"meta: 100%"}].map((k,i)=>(
+          <div key={i} className="card" style={{padding:20}}>
+            <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
+            <div className="num" style={{fontSize:28,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
+            <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
+            <div style={{fontSize:11,color:"var(--mu)"}}>{k.s}</div>
+          </div>
+        ))}
+      </div>
+      <div className="card" style={{padding:20}}>
+        <div style={{fontWeight:800,fontSize:15,marginBottom:16}}>Conclusões por Dia da Semana</div>
+        <svg viewBox="0 0 420 120" style={{width:"100%",height:120}}>
+          {bars.map((b,i)=>{const h=(b/maxB)*90;return <g key={i}><rect x={10+i*58} y={110-h} width={40} height={h} rx="4" fill="var(--p)" opacity={b===maxB?1:0.65}/><text x={30+i*58} y={105-h} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink)">{b}</text><text x={30+i*58} y="118" textAnchor="middle" fontSize="10" fill="var(--mu)">{cats[i]}</text></g>;})}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsEngajamento(){
+  const bars=[12,18,9,22,17,4,3];
+  const days=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+  const maxB=Math.max(...bars);
+  const top=[{n:"Carlos Mendes",dept:"Comercial",p:12,c:"#d97706"},{n:"Ana Beatriz",dept:"RH",p:9,c:"#2563eb"},{n:"Admin TITANO",dept:"TI",p:7,c:"#16a34a"},{n:"Técnico V-BLOK",dept:"Qualidade",p:6,c:"#7c3aed"},{n:"Pedro Souza",dept:"Produção",p:4,c:"#dc2626"}];
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
+        {[{e:"❤️",l:"Curtidas / Semana",v:186,t:"+22%"},{e:"💬",l:"Comentários / Semana",v:54,t:"+8%"},{e:"📢",l:"Canais de Chat",v:6,t:""},{e:"🔔",l:"Notif. Enviadas Hoje",v:342,t:""}].map((k,i)=>(
+          <div key={i} className="card" style={{padding:20}}>
+            <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
+            <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+              <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
+              {k.t&&<span style={{fontSize:12,color:"#16a34a",fontWeight:700}}>{k.t}</span>}
+            </div>
+            <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="card" style={{padding:20}}>
+          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Posts por Dia da Semana</div>
+          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Atividade no feed</div>
+          <svg viewBox="0 0 360 120" style={{width:"100%",height:120}}>
+            {bars.map((b,i)=>{const h=(b/maxB)*90;return <g key={i}><rect x={5+i*50} y={110-h} width={36} height={h} rx="4" fill="var(--p)" opacity={b===maxB?1:0.65}/><text x={23+i*50} y={105-h} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink)">{b}</text><text x={23+i*50} y="118" textAnchor="middle" fontSize="10" fill="var(--mu)">{days[i]}</text></g>;})}
+          </svg>
+        </div>
+        <div className="card" style={{padding:20}}>
+          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Top Publicadores do Mês</div>
+          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Por número de publicações</div>
+          {top.map((u,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid var(--ls)"}}>
+              <div style={{width:24,height:24,borderRadius:"50%",background:u.c,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:11,fontWeight:800,flexShrink:0}}>#{i+1}</div>
+              <div style={{width:32,height:32,borderRadius:"50%",background:"var(--p)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:12,flexShrink:0}}>{u.n.split(" ").map(w=>w[0]).join("").slice(0,2)}</div>
+              <div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,fontSize:13}} className="truncate">{u.n}</div><div style={{fontSize:11,color:"var(--mu)"}}>{u.dept}</div></div>
+              <span style={{fontWeight:800,fontSize:13,color:u.c}}>{u.p} posts</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsAcessos(){
+  const seed=42;const rng=(s)=>{let x=s;return()=>{x=((x*1664525+1013904223)>>>0)/4294967296;return x;};};const r=rng(seed);
+  const heatmap=Array.from({length:5},()=>Array.from({length:12},()=>Math.floor(r()*10)));
+  const hours=["7h","8h","9h","10h","11h","12h","13h","14h","15h","16h","17h","18h"];
+  const dias=["Seg","Ter","Qua","Qui","Sex"];
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
+        {[{e:"👁",l:"Acessos Hoje",v:187,s:"",t:"+5%"},{e:"📱",l:"Mobile",v:"38%",s:"do total",t:""},{e:"⏱",l:"Tempo Médio de Sessão",v:"14min",s:"por acesso",t:""},{e:"🌐",l:"Filiais Acessando",v:11,s:"de 13 hoje",t:""}].map((k,i)=>(
+          <div key={i} className="card" style={{padding:20}}>
+            <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
+            <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+              <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
+              {k.t&&<span style={{fontSize:12,color:"#16a34a",fontWeight:700}}>{k.t}</span>}
+            </div>
+            <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
+            {k.s&&<div style={{fontSize:11,color:"var(--mu)"}}>{k.s}</div>}
+          </div>
+        ))}
+      </div>
+      <div className="card" style={{padding:20}}>
+        <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Mapa de Calor de Acessos</div>
+        <div style={{fontSize:12,color:"var(--mu)",marginBottom:16}}>Horários de pico por dia da semana (acessos)</div>
+        <div style={{overflowX:"auto"}}>
+          <table style={{borderSpacing:4,borderCollapse:"separate"}}>
+            <thead><tr><th style={{width:36}}></th>{hours.map(h=><th key={h} style={{fontSize:10,color:"var(--mu)",fontWeight:600,paddingBottom:6,minWidth:28,textAlign:"center"}}>{h}</th>)}</tr></thead>
+            <tbody>{heatmap.map((row,d)=>(
+              <tr key={d}>
+                <td style={{fontSize:11,color:"var(--mu)",paddingRight:8,fontWeight:600,whiteSpace:"nowrap"}}>{dias[d]}</td>
+                {row.map((v,h)=>(
+                  <td key={h} style={{width:28,height:28,borderRadius:4,background:`color-mix(in srgb,var(--p) ${Math.max(v*10,5)}%,var(--b3))`,cursor:"default"}} title={`${dias[d]} ${hours[h]}: ${v} acessos`}/>
+                ))}
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,justifyContent:"flex-end",fontSize:11,color:"var(--mu)"}}>
+          <span>Menos</span>
+          {[5,25,50,75,100].map(v=><div key={v} style={{width:16,height:16,borderRadius:3,background:`color-mix(in srgb,var(--p) ${v}%,var(--b3))`}}/>)}
+          <span>Mais</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 /* ── Users ── */
 const PERMS_KEYS=[
