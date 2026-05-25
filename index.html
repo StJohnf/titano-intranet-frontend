@@ -137,6 +137,8 @@ function AppProvider({children}){
   /* Checa permissão: role-based + permissão custom no user.permissions[] */
   const can=useCallback((key)=>{
     if(!user)return false;
+    if(user.role==="admin")return true; // admin sempre tem acesso a tudo
+    if(user.role==="gerente"&&["analytics_view","training_manage","policies_manage","surveys_create","calendar_create","calendar_delete","feed_pin","feed_delete_any"].includes(key))return true;
     if(Array.isArray(user.permissions)&&user.permissions.includes(key))return true;
     const req=(cfg&&cfg[`perm_${key}`])||"todos";
     if(req==="todos")return true;
@@ -647,16 +649,21 @@ function ProfModal({user:u,onClose}){
   const manager=u.manager||(u.managerId?allUsers.find(x=>x.id===u.managerId):null);
   const reports=(u.reports&&u.reports.length>0)?u.reports:allUsers.filter(x=>x.managerId===u.id);
   const sk=u.skills||[];
+  const callNum=u.phone?u.phone.replace(/\D/g,""):"";
   return <Modal open onClose={onClose} title="Perfil" wide>
     <div style={{display:"flex",gap:20,alignItems:"flex-start",marginBottom:20}}>
       <Av name={u.name} url={u.avatar} size={80}/>
       <div>
         <div style={{fontWeight:900,fontSize:22}}>{u.name}</div>
-        {u.jobTitle&&<div style={{fontSize:13,color:"var(--mu)",marginTop:2}}>🏷 {u.jobTitle}</div>}
+        {u.jobTitle&&<div style={{fontSize:13,color:"var(--p)",fontWeight:700,marginTop:2}}>🏷 {u.jobTitle}</div>}
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
           <span className="chip chip-green">{ROLES[u.role]||u.role}</span>
           {u.onlineAt&&<span className="chip chip-green">● Online</span>}
           {u.status&&u.status!=="ativo"&&<span className="chip chip-amber">{u.status}</span>}
+        </div>
+        <div style={{display:"flex",gap:8,marginTop:12}}>
+          <a href={`mailto:${u.email}`} onClick={e=>e.stopPropagation()} className="btn btn-ghost btn-sm">✉ E-mail</a>
+          {u.phone&&<a href={`tel:${callNum}`} onClick={e=>e.stopPropagation()} className="btn btn-ghost btn-sm">📱 Ligar</a>}
         </div>
         {u.statusMsg&&<div style={{fontSize:13,color:"var(--mu)",marginTop:6,fontStyle:"italic"}}>"{u.statusMsg}"</div>}
       </div>
@@ -979,22 +986,28 @@ function Analytics(){
 }
 
 function AnalyticsGeral({activeUsers,totalUsers,byDept}){
-  const maxDept=Math.max(...byDept.map(d=>d.count),1);
-  const total=byDept.reduce((a,b)=>a+b.count,0)||1;
   const COLORS=["#d97706","#7c3aed","#16a34a","#2563eb","#0891b2","#dc2626","#ea580c","#6b7280"];
-  const months=["Jan","Fev","Mar","Abr","Mai","Jun"];
-  const mockLine=[180,210,195,242,0,0];
-  const maxLine=Math.max(...mockLine,1);
+  const total=byDept.reduce((a,b)=>a+b.count,0)||1;
+  const {data:feedData}=useRes(()=>api("/api/feed?limit=1").catch(()=>null));
+  const {data:kudosData}=useRes(()=>api("/api/recognition").catch(()=>[]));
+  const {data:trainData}=useRes(()=>api("/api/training").catch(()=>[]));
+  const totalPosts=feedData?.total||0;
+  const totalKudos=Array.isArray(kudosData)?kudosData.length:0;
+  const countItems=(folders)=>{let n=0;(folders||[]).forEach(f=>{n+=(f.items||[]).length;(f.children||[]).forEach(c=>{n+=(c.items||[]).length;});});return n;};
+  const totalTraining=Array.isArray(trainData)?countItems(trainData):0;
+
   return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
-        {[{e:"👥",l:"Colaboradores Ativos",v:activeUsers,s:`de ${totalUsers} cadastrados`,t:"+3%"},{e:"📚",l:"Treinamentos Concluídos",v:"73%",s:"meta: 100%",t:"+12%"},{e:"💬",l:"Mensagens / Dia",v:134,s:"média últimos 7 dias",t:"+12%"},{e:"📰",l:"Posts no Feed",v:42,s:"este mês",t:"+8%"}].map((k,i)=>(
+        {[
+          {e:"👥",l:"Colaboradores Ativos",v:activeUsers,s:`de ${totalUsers} cadastrados`},
+          {e:"📰",l:"Posts no Feed",v:totalPosts,s:"publicações totais"},
+          {e:"✨",l:"Reconhecimentos",v:totalKudos,s:"kudos enviados"},
+          {e:"📚",l:"Itens de Treinamento",v:totalTraining,s:"no catálogo"},
+        ].map((k,i)=>(
           <div key={i} className="card" style={{padding:20}}>
             <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
-            <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-              <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
-              <span style={{fontSize:12,color:"#16a34a",fontWeight:700}}>{k.t}</span>
-            </div>
+            <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
             <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
             <div style={{fontSize:11,color:"var(--mu)",marginTop:2}}>{k.s}</div>
           </div>
@@ -1002,22 +1015,30 @@ function AnalyticsGeral({activeUsers,totalUsers,byDept}){
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
         <div className="card" style={{padding:20}}>
-          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Acessos Mensais</div>
-          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Usuários únicos por mês</div>
-          <svg viewBox="0 0 400 160" style={{width:"100%",height:160}}>
-            <defs><linearGradient id="aglg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#1f4e2a" stopOpacity=".25"/><stop offset="100%" stopColor="#1f4e2a" stopOpacity="0"/></linearGradient></defs>
-            {[0,50,100,150].map(y=><line key={y} x1="30" y1={y} x2="395" y2={y} stroke="var(--ls)" strokeWidth="1"/>)}
-            {months.map((m,i)=><text key={m} x={30+i*62} y="158" fontSize="11" fill="var(--mu)">{m}</text>)}
-            <polygon fill="url(#aglg)" points={[...mockLine.map((v,i)=>`${30+i*62},${145-(v/maxLine)*120}`),"340,145","30,145"].join(" ")}/>
-            <polyline fill="none" stroke="var(--p)" strokeWidth="2.5" strokeLinejoin="round" points={mockLine.map((v,i)=>`${30+i*62},${145-(v/maxLine)*120}`).join(" ")}/>
-            {mockLine.map((v,i)=><circle key={i} cx={30+i*62} cy={145-(v/maxLine)*120} r="5" fill={v>0?"var(--p)":"var(--b3)"} stroke="#fff" strokeWidth="2"/>)}
-            {mockLine.map((v,i)=>v>0?<text key={i} x={30+i*62} y={140-(v/maxLine)*120} fontSize="11" textAnchor="middle" fill="var(--ink)" fontWeight="700">{v}</text>:null)}
-          </svg>
+          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Por Status</div>
+          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Distribuição dos colaboradores</div>
+          {[
+            {l:"Ativos",v:activeUsers,c:"#16a34a"},
+            {l:"Total cadastrados",v:totalUsers,c:"#2563eb"},
+            {l:"Inativos",v:Math.max(totalUsers-activeUsers,0),c:"#dc2626"},
+          ].map((r,i)=>(
+            <div key={i} style={{marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
+                <span style={{fontWeight:600}}>{r.l}</span>
+                <span className="num" style={{fontWeight:800}}>{r.v}</span>
+              </div>
+              <div style={{height:10,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}>
+                <div style={{height:"100%",width:totalUsers>0?`${Math.round(r.v/totalUsers*100)}%`:"0%",background:r.c,borderRadius:6}}/>
+              </div>
+            </div>
+          ))}
         </div>
         <div className="card" style={{padding:20}}>
           <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Distribuição por Departamento</div>
           <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Colaboradores ativos</div>
-          {byDept.length===0?<Hint>Configure departamentos e cadastre colaboradores para ver a distribuição.</Hint>:(
+          {byDept.length===0?(
+            <Empty emoji="📊" title="Sem dados" hint="Cadastre colaboradores com departamento para ver a distribuição."/>
+          ):(
             <div style={{display:"flex",gap:16,alignItems:"center"}}>
               <svg viewBox="0 0 120 120" style={{width:110,height:110,flexShrink:0}}>
                 {(()=>{let a=0;return byDept.slice(0,6).map((d,i)=>{const pct=d.count/total;const angle=pct*2*Math.PI;const x1=60+55*Math.sin(a);const y1=60-55*Math.cos(a);a+=angle;const x2=60+55*Math.sin(a);const y2=60-55*Math.cos(a);const large=pct>0.5?1:0;return <path key={i} d={`M60,60 L${x1.toFixed(1)},${y1.toFixed(1)} A55,55 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`} fill={COLORS[i%COLORS.length]}/>;});})()}
@@ -1030,7 +1051,7 @@ function AnalyticsGeral({activeUsers,totalUsers,byDept}){
                   <div key={i} style={{display:"flex",alignItems:"center",gap:7,fontSize:12}}>
                     <div style={{width:10,height:10,borderRadius:2,background:COLORS[i%COLORS.length],flexShrink:0}}/>
                     <span style={{flex:1,color:"var(--ink)"}} className="truncate">{d.dept}</span>
-                    <span style={{fontWeight:700,color:"var(--mu)"}}>{Math.round(d.count/total*100)}%</span>
+                    <span className="num" style={{fontWeight:700,color:"var(--mu)"}}>{Math.round(d.count/total*100)}%</span>
                   </div>
                 ))}
               </div>
@@ -1043,120 +1064,178 @@ function AnalyticsGeral({activeUsers,totalUsers,byDept}){
 }
 
 function AnalyticsTreinamentos(){
-  const bars=[65,80,45,90,72,58,85];
-  const cats=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
-  const maxB=Math.max(...bars);
+  const {data:trainData,loading}=useRes(()=>api("/api/training").catch(()=>[]));
+  const folders=Array.isArray(trainData)?trainData:[];
+  const countItems=(fols)=>{let n=0;(fols||[]).forEach(f=>{n+=(f.items||[]).length;(f.children||[]).forEach(c=>{n+=(c.items||[]).length;(c.children||[]).forEach(g=>{n+=(g.items||[]).length;});});});return n;};
+  const totalItems=countItems(folders);
+  const totalFolders=folders.length;
+  const obrigatorios=folders.reduce((a,f)=>{
+    let n=0;(f.items||[]).forEach(it=>{if(it.mandatory)n++;});
+    (f.children||[]).forEach(c=>{(c.items||[]).forEach(it=>{if(it.mandatory)n++;});});
+    return a+n;
+  },0);
+  if(loading)return<Spin/>;
   return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
-        {[{e:"📚",l:"Treinamentos Ativos",v:24,s:"no catálogo"},{e:"✅",l:"Concluídos / Usuário",v:"3.2",s:"média"},{e:"⏱",l:"Tempo Médio",v:"42min",s:"por treinamento"},{e:"🏆",l:"Taxa de Conclusão",v:"73%",s:"meta: 100%"}].map((k,i)=>(
+        {[
+          {e:"📁",l:"Pastas no Catálogo",v:totalFolders},
+          {e:"📄",l:"Itens de Treinamento",v:totalItems},
+          {e:"⚠️",l:"Itens Obrigatórios",v:obrigatorios},
+          {e:"📊",l:"Itens Opcionais",v:totalItems-obrigatorios},
+        ].map((k,i)=>(
           <div key={i} className="card" style={{padding:20}}>
             <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
-            <div className="num" style={{fontSize:28,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
+            <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
             <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
-            <div style={{fontSize:11,color:"var(--mu)"}}>{k.s}</div>
           </div>
         ))}
       </div>
-      <div className="card" style={{padding:20}}>
-        <div style={{fontWeight:800,fontSize:15,marginBottom:16}}>Conclusões por Dia da Semana</div>
-        <svg viewBox="0 0 420 120" style={{width:"100%",height:120}}>
-          {bars.map((b,i)=>{const h=(b/maxB)*90;return <g key={i}><rect x={10+i*58} y={110-h} width={40} height={h} rx="4" fill="var(--p)" opacity={b===maxB?1:0.65}/><text x={30+i*58} y={105-h} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink)">{b}</text><text x={30+i*58} y="118" textAnchor="middle" fontSize="10" fill="var(--mu)">{cats[i]}</text></g>;})}
-        </svg>
-      </div>
+      {totalItems===0?(
+        <Empty emoji="📚" title="Nenhum treinamento cadastrado" hint="Acesse a aba Treinamentos e crie pastas com conteúdos."/>
+      ):(
+        <div className="card" style={{padding:20}}>
+          <div style={{fontWeight:800,fontSize:15,marginBottom:16}}>Distribuição por Pasta</div>
+          {folders.map((f,i)=>{
+            const n=(f.items||[]).length+(f.children||[]).reduce((a,c)=>a+(c.items||[]).length,0);
+            const pct=totalItems>0?Math.round(n/totalItems*100):0;
+            return(
+              <div key={i} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
+                  <span style={{fontWeight:600}}>{f.icon||"📁"} {f.name}</span>
+                  <span className="num" style={{fontWeight:800}}>{n} item{n!==1?"s":""}</span>
+                </div>
+                <div style={{height:10,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${pct}%`,background:f.color||"var(--p)",borderRadius:6}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 function AnalyticsEngajamento(){
-  const bars=[12,18,9,22,17,4,3];
-  const days=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
-  const maxB=Math.max(...bars);
-  const top=[{n:"Carlos Mendes",dept:"Comercial",p:12,c:"#d97706"},{n:"Ana Beatriz",dept:"RH",p:9,c:"#2563eb"},{n:"Admin TITANO",dept:"TI",p:7,c:"#16a34a"},{n:"Técnico V-BLOK",dept:"Qualidade",p:6,c:"#7c3aed"},{n:"Pedro Souza",dept:"Produção",p:4,c:"#dc2626"}];
+  const {data:kudosData,loading:kl}=useRes(()=>api("/api/recognition").catch(()=>[]));
+  const {data:feedData,loading:fl}=useRes(()=>api("/api/feed?limit=50").catch(()=>({posts:[]})));
+  const {data:survData}=useRes(()=>api("/api/surveys").catch(()=>[]));
+  const kudos=Array.isArray(kudosData)?kudosData:[];
+  const posts=(feedData?.posts||[]);
+  const surveys=Array.isArray(survData)?survData:[];
+  const totalRespostas=surveys.reduce((a,s)=>a+(s.responsesCount||0),0);
+  if(kl||fl)return<Spin/>;
   return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
-        {[{e:"❤️",l:"Curtidas / Semana",v:186,t:"+22%"},{e:"💬",l:"Comentários / Semana",v:54,t:"+8%"},{e:"📢",l:"Canais de Chat",v:6,t:""},{e:"🔔",l:"Notif. Enviadas Hoje",v:342,t:""}].map((k,i)=>(
+        {[
+          {e:"✨",l:"Kudos enviados",v:kudos.length},
+          {e:"📰",l:"Posts no Feed",v:posts.length},
+          {e:"📋",l:"Pesquisas ativas",v:surveys.filter(s=>s.status==="active").length},
+          {e:"💬",l:"Respostas em Pesquisas",v:totalRespostas},
+        ].map((k,i)=>(
           <div key={i} className="card" style={{padding:20}}>
             <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
-            <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-              <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
-              {k.t&&<span style={{fontSize:12,color:"#16a34a",fontWeight:700}}>{k.t}</span>}
-            </div>
+            <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
             <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
           </div>
         ))}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-        <div className="card" style={{padding:20}}>
-          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Posts por Dia da Semana</div>
-          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Atividade no feed</div>
-          <svg viewBox="0 0 360 120" style={{width:"100%",height:120}}>
-            {bars.map((b,i)=>{const h=(b/maxB)*90;return <g key={i}><rect x={5+i*50} y={110-h} width={36} height={h} rx="4" fill="var(--p)" opacity={b===maxB?1:0.65}/><text x={23+i*50} y={105-h} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink)">{b}</text><text x={23+i*50} y="118" textAnchor="middle" fontSize="10" fill="var(--mu)">{days[i]}</text></g>;})}
-          </svg>
+      {kudos.length===0&&posts.length===0?(
+        <Empty emoji="📊" title="Sem dados de engajamento" hint="Publique no feed e envie reconhecimentos para ver métricas aqui."/>
+      ):(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+          <div className="card" style={{padding:20}}>
+            <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Kudos por Badge</div>
+            {["star","heart","rocket","shield","leaf","trophy"].map((badge,i)=>{
+              const EMOJIS={star:"⭐",heart:"❤️",rocket:"🚀",shield:"🛡",leaf:"🌿",trophy:"🏆"};
+              const count=kudos.filter(k=>k.badge===badge).length;
+              const max=Math.max(...["star","heart","rocket","shield","leaf","trophy"].map(b=>kudos.filter(k=>k.badge===b).length),1);
+              return count>0?(
+                <div key={badge} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
+                    <span>{EMOJIS[badge]} {badge}</span>
+                    <span className="num" style={{fontWeight:700}}>{count}</span>
+                  </div>
+                  <div style={{height:8,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${Math.round(count/max*100)}%`,background:"var(--p)",borderRadius:6}}/>
+                  </div>
+                </div>
+              ):null;
+            })}
+            {kudos.length===0&&<Hint>Nenhum Kudo enviado ainda.</Hint>}
+          </div>
+          <div className="card" style={{padding:20}}>
+            <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Posts por Categoria</div>
+            {["geral","comunicado","conquista","qualidade","seguranca","rh","evento"].map((cat,i)=>{
+              const LABELS={geral:"Geral",comunicado:"Comunicado",conquista:"Conquista",qualidade:"Qualidade",seguranca:"Segurança",rh:"RH",evento:"Evento"};
+              const count=posts.filter(p=>p.category===cat).length;
+              const max=Math.max(...["geral","comunicado","conquista","qualidade","seguranca","rh","evento"].map(c=>posts.filter(p=>p.category===c).length),1);
+              return count>0?(
+                <div key={cat} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
+                    <span>{LABELS[cat]}</span>
+                    <span className="num" style={{fontWeight:700}}>{count}</span>
+                  </div>
+                  <div style={{height:8,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${Math.round(count/max*100)}%`,background:"var(--ac)",borderRadius:6}}/>
+                  </div>
+                </div>
+              ):null;
+            })}
+            {posts.length===0&&<Hint>Nenhum post no feed ainda.</Hint>}
+          </div>
         </div>
-        <div className="card" style={{padding:20}}>
-          <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Top Publicadores do Mês</div>
-          <div style={{fontSize:12,color:"var(--mu)",marginBottom:12}}>Por número de publicações</div>
-          {top.map((u,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid var(--ls)"}}>
-              <div style={{width:24,height:24,borderRadius:"50%",background:u.c,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:11,fontWeight:800,flexShrink:0}}>#{i+1}</div>
-              <div style={{width:32,height:32,borderRadius:"50%",background:"var(--p)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:12,flexShrink:0}}>{u.n.split(" ").map(w=>w[0]).join("").slice(0,2)}</div>
-              <div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,fontSize:13}} className="truncate">{u.n}</div><div style={{fontSize:11,color:"var(--mu)"}}>{u.dept}</div></div>
-              <span style={{fontWeight:800,fontSize:13,color:u.c}}>{u.p} posts</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
 
 function AnalyticsAcessos(){
-  const seed=42;const rng=(s)=>{let x=s;return()=>{x=((x*1664525+1013904223)>>>0)/4294967296;return x;};};const r=rng(seed);
-  const heatmap=Array.from({length:5},()=>Array.from({length:12},()=>Math.floor(r()*10)));
-  const hours=["7h","8h","9h","10h","11h","12h","13h","14h","15h","16h","17h","18h"];
-  const dias=["Seg","Ter","Qua","Qui","Sex"];
+  const {data:usersData}=useRes(()=>api("/api/users").catch(()=>[]));
+  const users=Array.isArray(usersData)?usersData:[];
+  const byBranch=Object.entries(users.reduce((acc,u)=>{const k=u.branch||"Sem filial";acc[k]=(acc[k]||0)+1;return acc;},{})).sort((a,b)=>b[1]-a[1]);
+  const maxB=Math.max(...byBranch.map(([,v])=>v),1);
   return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
-        {[{e:"👁",l:"Acessos Hoje",v:187,s:"",t:"+5%"},{e:"📱",l:"Mobile",v:"38%",s:"do total",t:""},{e:"⏱",l:"Tempo Médio de Sessão",v:"14min",s:"por acesso",t:""},{e:"🌐",l:"Filiais Acessando",v:11,s:"de 13 hoje",t:""}].map((k,i)=>(
+        {[
+          {e:"👥",l:"Colaboradores Cadastrados",v:users.length},
+          {e:"✅",l:"Ativos",v:users.filter(u=>u.status==="ativo").length},
+          {e:"🏖",l:"Em Férias",v:users.filter(u=>u.status==="ferias").length},
+          {e:"📍",l:"Filiais com Colaboradores",v:[...new Set(users.map(u=>u.branch).filter(Boolean))].length},
+        ].map((k,i)=>(
           <div key={i} className="card" style={{padding:20}}>
             <div style={{fontSize:28,marginBottom:8}}>{k.e}</div>
-            <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-              <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
-              {k.t&&<span style={{fontSize:12,color:"#16a34a",fontWeight:700}}>{k.t}</span>}
-            </div>
+            <div className="num" style={{fontSize:32,fontWeight:900,color:"var(--p)"}}>{k.v}</div>
             <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{k.l}</div>
-            {k.s&&<div style={{fontSize:11,color:"var(--mu)"}}>{k.s}</div>}
           </div>
         ))}
       </div>
       <div className="card" style={{padding:20}}>
-        <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Mapa de Calor de Acessos</div>
-        <div style={{fontSize:12,color:"var(--mu)",marginBottom:16}}>Horários de pico por dia da semana (acessos)</div>
-        <div style={{overflowX:"auto"}}>
-          <table style={{borderSpacing:4,borderCollapse:"separate"}}>
-            <thead><tr><th style={{width:36}}></th>{hours.map(h=><th key={h} style={{fontSize:10,color:"var(--mu)",fontWeight:600,paddingBottom:6,minWidth:28,textAlign:"center"}}>{h}</th>)}</tr></thead>
-            <tbody>{heatmap.map((row,d)=>(
-              <tr key={d}>
-                <td style={{fontSize:11,color:"var(--mu)",paddingRight:8,fontWeight:600,whiteSpace:"nowrap"}}>{dias[d]}</td>
-                {row.map((v,h)=>(
-                  <td key={h} style={{width:28,height:28,borderRadius:4,background:`color-mix(in srgb,var(--p) ${Math.max(v*10,5)}%,var(--b3))`,cursor:"default"}} title={`${dias[d]} ${hours[h]}: ${v} acessos`}/>
-                ))}
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,justifyContent:"flex-end",fontSize:11,color:"var(--mu)"}}>
-          <span>Menos</span>
-          {[5,25,50,75,100].map(v=><div key={v} style={{width:16,height:16,borderRadius:3,background:`color-mix(in srgb,var(--p) ${v}%,var(--b3))`}}/>)}
-          <span>Mais</span>
-        </div>
+        <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>Colaboradores por Filial</div>
+        <div style={{fontSize:12,color:"var(--mu)",marginBottom:16}}>Distribuição geográfica da equipe</div>
+        {byBranch.length===0?(
+          <Empty emoji="📍" title="Sem dados de filial" hint="Cadastre colaboradores com filial para ver a distribuição."/>
+        ):(
+          byBranch.map(([branch,count],i)=>(
+            <div key={i} style={{marginBottom:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
+                <span style={{fontWeight:600}}>📍 {branch}</span>
+                <span className="num" style={{fontWeight:800}}>{count} colaborador{count!==1?"es":""}</span>
+              </div>
+              <div style={{height:10,borderRadius:6,background:"var(--b4)",overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${Math.round(count/maxB*100)}%`,background:"var(--p)",borderRadius:6}}/>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 }
+
 
 
 /* ── Users ── */
